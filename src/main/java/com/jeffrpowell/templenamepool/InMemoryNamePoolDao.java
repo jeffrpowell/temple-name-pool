@@ -34,7 +34,8 @@ public class InMemoryNamePoolDao implements NamePoolDao {
 
     @Override
     public void addNames(Collection<NameSubmission> names) {
-        templeNames.putAll(names.stream().collect(Collectors.toMap(NameSubmission::getFamilySearchId, name -> name)));
+        Map<String, TempleName> idKeyedNames = names.stream().collect(Collectors.toMap(NameSubmission::getFamilySearchId, name -> name));
+        templeNames.putAll(idKeyedNames);
         Map<Ordinance, List<String>> groupedNamesByOrdinance = names.stream()
             .map(TempleNameOrdinanceKey::fullPack)
             .flatMap(List::stream)
@@ -91,7 +92,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
             ));
     }
 
-    private static class TempleNameOrdinanceKey {
+    static class TempleNameOrdinanceKey {
 
         private final String familySearchId;
         private final Ordinance ordinance;
