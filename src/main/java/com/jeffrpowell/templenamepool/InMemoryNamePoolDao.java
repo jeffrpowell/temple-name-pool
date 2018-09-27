@@ -2,29 +2,32 @@ package com.jeffrpowell.templenamepool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class InMemoryNamePoolDao implements NamePoolDao {
 
     private final Map<String, TempleName> templeNames;
-    private final Map<WardMember, Collection<String>> submittedNames;
+    private final Map<String, NameSubmission> submittedNames;
     private final Map<Ordinance, Collection<String>> availableOrdinances;
     private final Map<String, WardMember> checkedOutNames;
-    private final Map<WardMember, Collection<TempleNameOrdinanceKey>> completedOrdinances;
+    private final List<CompletedTempleOrdinances> completedOrdinances;
 
     public InMemoryNamePoolDao() {
         this.templeNames = new ConcurrentHashMap<>();
         this.submittedNames = new ConcurrentHashMap<>();
         this.availableOrdinances = new ConcurrentHashMap<>();
+        this.availableOrdinances.putAll(EnumSet.allOf(Ordinance.class).stream().collect(Collectors.toMap(k->k, k -> new ArrayList<>())));
         this.checkedOutNames = new ConcurrentHashMap<>();
-        this.completedOrdinances = new ConcurrentHashMap<>();
+        this.completedOrdinances = new ArrayList<>();
     }
 
-    InMemoryNamePoolDao(Map<String, TempleName> templeNames, Map<WardMember, Collection<String>> submittedNames, Map<Ordinance, Collection<String>> availableOrdinances, Map<String, WardMember> checkedOutNames, Map<WardMember, Collection<TempleNameOrdinanceKey>> completedOrdinances) {
+    InMemoryNamePoolDao(Map<String, TempleName> templeNames, Map<String, NameSubmission> submittedNames, Map<Ordinance, Collection<String>> availableOrdinances, Map<String, WardMember> checkedOutNames, List<CompletedTempleOrdinances> completedOrdinances) {
         this.templeNames = templeNames;
         this.submittedNames = submittedNames;
         this.availableOrdinances = availableOrdinances;
@@ -44,11 +47,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
             availableOrdinances.putIfAbsent(entry.getKey(), new ArrayList<>());
             availableOrdinances.get(entry.getKey()).addAll(entry.getValue());
         });
-        Map<WardMember, List<NameSubmission>> groupedNamesBySubmitter = names.stream().collect(Collectors.groupingBy(NameSubmission::getSupplier));
-        groupedNamesBySubmitter.entrySet().stream().forEach(entry -> {
-            submittedNames.putIfAbsent(entry.getKey(), new ArrayList<>());
-            submittedNames.get(entry.getKey()).addAll(entry.getValue().stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList()));
-        });
+        submittedNames.putAll(names.stream().collect(Collectors.toMap(NameSubmission::getFamilySearchId, n->n)));
     }
 
     @Override
@@ -62,17 +61,17 @@ public class InMemoryNamePoolDao implements NamePoolDao {
     }
 
     @Override
-    public void markNamesAsCompleted(Collection<TempleName> names) {
-        WardMember member = checkedOutNames.get(names.iterator().next().getFamilySearchId());
-        completedOrdinances.putIfAbsent(member, new ArrayList<>());
-        completedOrdinances.get(member).addAll(
-            names.stream()
-                .peek(name -> checkedOutNames.remove(name.getFamilySearchId()))
-                .map(TempleNameOrdinanceKey::fullPack)
-                .filter(list -> !list.isEmpty())
-                .flatMap(List::stream)
-                .peek(idOrdinanceKey -> availableOrdinances.get(idOrdinanceKey.getOrdinance()).remove(idOrdinanceKey.getFamilySearchId()))
-                .collect(Collectors.toList())
+    public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
+        completedOrdinances.addAll(names.stream()
+            .filter(name -> checkedOutNames.get(name.getFamilySearchId()) == name.getCompleter()) //ignore unexpected input
+            .peek(name -> checkedOutNames.remove(name.getFamilySearchId()))
+            .filter(name -> !name.getOrdinances().isEmpty())
+            .peek(name -> {
+                name.getOrdinances().forEach(ordinance -> 
+                    availableOrdinances.get(ordinance).remove(name.getFamilySearchId())
+                );
+            })
+            .collect(Collectors.toList())
         );
     }
 
@@ -82,17 +81,31 @@ public class InMemoryNamePoolDao implements NamePoolDao {
     }
 
     @Override
-    public Map<WardMember, List<TempleName>> getCompletedOrdinances() {
-        return completedOrdinances.entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().stream()
-                    .map(idOrdinanceKey -> templeNames.get(idOrdinanceKey.getFamilySearchId()))
-                    .collect(Collectors.toList())
+    public Map<WardMember, List<TempleName>> getCompletedOrdinancesBySubmitter() {
+        Map<String, Set<Ordinance>> completedOrdinancesByName = completedOrdinances.stream()
+            .collect(Collectors.groupingBy(
+                CompletedTempleOrdinances::getFamilySearchId,
+                Collectors.collectingAndThen(
+                    Collectors.mapping(CompletedTempleOrdinances::getOrdinances, Collectors.toList()),
+                    listOfSets -> listOfSets.stream().flatMap(Collection::stream).sorted().collect(Collectors.toSet())
+                )
             ));
+        List<TempleName> completedNames = completedOrdinancesByName.entrySet().stream()
+            .map(entry -> new TempleName(entry.getKey(), null, entry.getValue()))
+            .collect(Collectors.toList());
+        Map<String, WardMember> submitters = completedOrdinancesByName.keySet().stream()
+            .map(submittedNames::get)
+            .collect(Collectors.toMap(NameSubmission::getFamilySearchId, NameSubmission::getSupplier));
+        return completedNames.stream()
+            .collect(Collectors.groupingBy(name -> submitters.get(name.getFamilySearchId())));
     }
 
-    static class TempleNameOrdinanceKey {
+    @Override
+    public Map<WardMember, List<CompletedTempleOrdinances>> getCompletedOrdinancesByCompleter() {
+        return completedOrdinances.stream().collect(Collectors.groupingBy(CompletedTempleOrdinances::getCompleter));
+    }
+
+    private static class TempleNameOrdinanceKey {
 
         private final String familySearchId;
         private final Ordinance ordinance;
