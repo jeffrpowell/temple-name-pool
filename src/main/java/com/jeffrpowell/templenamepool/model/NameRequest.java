@@ -1,4 +1,4 @@
-package com.jeffrpowell.templenamepool;
+package com.jeffrpowell.templenamepool.model;
 
 import java.time.LocalDate;
 

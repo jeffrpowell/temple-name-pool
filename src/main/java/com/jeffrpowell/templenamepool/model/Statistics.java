@@ -1,5 +1,7 @@
-package com.jeffrpowell.templenamepool;
+package com.jeffrpowell.templenamepool.model;
 
+import com.jeffrpowell.templenamepool.model.Ordinance;
+import com.jeffrpowell.templenamepool.model.WardMember;
 import java.util.Map;
 
 public class Statistics {

@@ -1,5 +1,12 @@
-package com.jeffrpowell.templenamepool;
+package com.jeffrpowell.templenamepool.dao;
 
+import com.jeffrpowell.templenamepool.dao.InMemoryNamePoolDao;
+import com.jeffrpowell.templenamepool.model.WardMember;
+import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
+import com.jeffrpowell.templenamepool.model.Ordinance;
+import com.jeffrpowell.templenamepool.model.NameSubmission;
+import com.jeffrpowell.templenamepool.model.NameRequest;
+import com.jeffrpowell.templenamepool.model.TempleName;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
@@ -195,6 +202,34 @@ public class InMemoryNamePoolDaoTest {
         assertTrue(completedOrdinancesByCompleter.containsKey(WAYNE));
         assertEquals(1, completedOrdinancesByCompleter.get(WAYNE).size());
         assertEquals(4, completedOrdinancesByCompleter.get(JEFF).size());
+    }
+
+    @org.junit.Test
+    public void testGetCompletedOrdinancesBySubmitter() {
+        TempleName name1 = new TempleName(FSID1, null, EnumSet.complementOf(EnumSet.of(Ordinance.SEALING_SPOUSE)));
+        TempleName name2 = new TempleName(FSID2, null, EnumSet.allOf(Ordinance.class));
+        TempleName name3 = new TempleName(FSID3, null, EnumSet.allOf(Ordinance.class));
+        NameSubmission submit1 = new NameSubmission(FSID1, WAYNE, new byte[0], EnumSet.allOf(Ordinance.class));
+        NameSubmission submit2 = new NameSubmission(FSID2, JEFF, new byte[0], EnumSet.allOf(Ordinance.class));
+        NameSubmission submit3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+        submittedNames.put(FSID1, submit1);
+        submittedNames.put(FSID2, submit2);
+        submittedNames.put(FSID3, submit3);
+        completedOrdinances.add(new CompletedTempleOrdinances(FSID1, JEFF, EnumSet.complementOf(EnumSet.of(Ordinance.SEALING_SPOUSE))));
+        completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY)));
+        completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE)));
+        completedOrdinances.add(new CompletedTempleOrdinances(FSID3, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION)));
+        completedOrdinances.add(new CompletedTempleOrdinances(FSID3, JEFF, EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE)));
+        Map<WardMember, List<TempleName>> completedOrdinancesBySubmitter = instance.getCompletedOrdinancesBySubmitter();
+        assertTrue(completedOrdinancesBySubmitter.containsKey(WAYNE));
+        assertTrue(completedOrdinancesBySubmitter.containsKey(JEFF));
+        assertTrue(completedOrdinancesBySubmitter.containsKey(LYN));
+        assertEquals(1, completedOrdinancesBySubmitter.get(WAYNE).size());
+        assertEquals(1, completedOrdinancesBySubmitter.get(JEFF).size());
+        assertEquals(1, completedOrdinancesBySubmitter.get(LYN).size());
+        assertEquals(name1, completedOrdinancesBySubmitter.get(WAYNE).get(0));
+        assertEquals(name2, completedOrdinancesBySubmitter.get(JEFF).get(0));
+        assertEquals(name3, completedOrdinancesBySubmitter.get(LYN).get(0));
     }
     
 }
