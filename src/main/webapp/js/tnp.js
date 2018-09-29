@@ -15,4 +15,8 @@ $(document).ready(function() {
 	$.get("tabs/statistics/statistics.html", function($template) {
 		$("#stats").append($template);
 	});
+	
+	$.get("api/member", function(members) {
+		console.log(members);
+	});
 });
