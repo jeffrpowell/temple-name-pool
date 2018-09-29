@@ -7,6 +7,7 @@ import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -15,6 +16,7 @@ public class StatisticsResource {
     
     private final NamePoolDao namePoolDao;
 
+	@Inject
     public StatisticsResource(NamePoolDao namePoolDao) {
         this.namePoolDao = namePoolDao;
     }

@@ -36,6 +36,12 @@ public class NameSubmission extends TempleName {
             return false;
         }
         final NameSubmission other = (NameSubmission) obj;
+		if (!Objects.equals(this.familySearchId, other.familySearchId)) {
+            return false;
+        }
+        if (!Objects.equals(this.ordinances, other.ordinances)) {
+			return false;
+		}
         return Objects.equals(this.supplier, other.supplier);
     }
 

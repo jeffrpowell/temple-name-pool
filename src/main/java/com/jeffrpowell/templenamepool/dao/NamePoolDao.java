@@ -10,6 +10,7 @@ import com.jeffrpowell.templenamepool.model.TempleName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jvnet.hk2.annotations.Contract;
 
 @Contract
@@ -21,4 +22,5 @@ public interface NamePoolDao {
     public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts();
     public Map<WardMember, List<TempleName>> getCompletedOrdinancesBySubmitter();
     public Map<WardMember, List<CompletedTempleOrdinances>> getCompletedOrdinancesByCompleter();
+	public Set<WardMember> getWardMembers();
 }
