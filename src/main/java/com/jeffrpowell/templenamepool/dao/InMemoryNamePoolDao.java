@@ -6,7 +6,9 @@ import com.jeffrpowell.templenamepool.model.WardMember;
 import com.jeffrpowell.templenamepool.model.NameSubmission;
 import com.jeffrpowell.templenamepool.model.NameRequest;
 import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
+import com.jeffrpowell.templenamepool.model.OverdueName;
 import com.jeffrpowell.templenamepool.model.TempleName;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -24,7 +26,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
     private final Map<String, TempleName> templeNames;
     private final Map<String, NameSubmission> submittedNames;
     private final Map<Ordinance, Collection<String>> availableOrdinances;
-    private final Map<String, WardMember> checkedOutNames;
+    private final Map<String, NameRequest> checkedOutNames;
     private final List<CompletedTempleOrdinances> completedOrdinances;
 
     public InMemoryNamePoolDao() {
@@ -36,7 +38,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
         this.completedOrdinances = new ArrayList<>();
     }
 
-    InMemoryNamePoolDao(Map<String, TempleName> templeNames, Map<String, NameSubmission> submittedNames, Map<Ordinance, Collection<String>> availableOrdinances, Map<String, WardMember> checkedOutNames, List<CompletedTempleOrdinances> completedOrdinances) {
+    InMemoryNamePoolDao(Map<String, TempleName> templeNames, Map<String, NameSubmission> submittedNames, Map<Ordinance, Collection<String>> availableOrdinances, Map<String, NameRequest> checkedOutNames, List<CompletedTempleOrdinances> completedOrdinances) {
         this.templeNames = templeNames;
         this.submittedNames = submittedNames;
         this.availableOrdinances = availableOrdinances;
@@ -64,7 +66,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
         return availableOrdinances.get(request.getOrdinance()).stream()
             .filter(id -> !checkedOutNames.containsKey(id))
             .limit(request.getNumRequested())
-            .peek(name -> checkedOutNames.put(name, request.getRequester()))
+            .peek(name -> checkedOutNames.put(name, request))
             .map(templeNames::get)
             .collect(Collectors.toList());
     }
@@ -72,7 +74,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
     @Override
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
         completedOrdinances.addAll(names.stream()
-            .filter(name -> checkedOutNames.get(name.getFamilySearchId()) == name.getCompleter()) //ignore unexpected input
+            .filter(name -> checkedOutNames.get(name.getFamilySearchId()).getRequester() == name.getCompleter()) //ignore unexpected input
             .peek(name -> checkedOutNames.remove(name.getFamilySearchId()))
             .filter(name -> !name.getOrdinances().isEmpty())
             .peek(name -> {
@@ -89,6 +91,14 @@ public class InMemoryNamePoolDao implements NamePoolDao {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts() {
+        return checkedOutNames.entrySet().stream()
+            .filter(entry -> entry.getValue().getTargetDate().isBefore(LocalDate.now()))
+            .collect(Collectors.groupingBy(entry -> entry.getValue().getRequester(),
+                Collectors.mapping(entry -> new OverdueName(templeNames.get(entry.getKey()), entry.getValue().getTargetDate()), Collectors.toList())));
+    }
+    
     @Override
     public Map<WardMember, List<TempleName>> getCompletedOrdinancesBySubmitter() {
         Map<String, Set<Ordinance>> completedOrdinancesByName = completedOrdinances.stream()

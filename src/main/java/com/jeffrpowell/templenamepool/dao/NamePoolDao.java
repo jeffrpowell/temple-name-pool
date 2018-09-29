@@ -5,6 +5,7 @@ import com.jeffrpowell.templenamepool.model.WardMember;
 import com.jeffrpowell.templenamepool.model.NameSubmission;
 import com.jeffrpowell.templenamepool.model.NameRequest;
 import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
+import com.jeffrpowell.templenamepool.model.OverdueName;
 import com.jeffrpowell.templenamepool.model.TempleName;
 import java.util.Collection;
 import java.util.List;
@@ -17,6 +18,7 @@ public interface NamePoolDao {
     public List<TempleName> checkoutNames(NameRequest request);
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names);
     public Statistics generateStatistics();
+    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts();
     public Map<WardMember, List<TempleName>> getCompletedOrdinancesBySubmitter();
     public Map<WardMember, List<CompletedTempleOrdinances>> getCompletedOrdinancesByCompleter();
 }
