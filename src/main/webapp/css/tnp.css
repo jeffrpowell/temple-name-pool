@@ -5,3 +5,11 @@ body {
 .border-right {
 	border-right: 1px solid #888888;
 }
+
+.form-group, label {
+	margin-right: 5px;
+}
+
+#addNewNames .new-name {
+	margin-bottom: 10px;
+}

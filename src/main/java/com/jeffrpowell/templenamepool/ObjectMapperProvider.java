@@ -1,5 +1,6 @@
 package com.jeffrpowell.templenamepool;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import javax.ws.rs.ext.ContextResolver;
@@ -22,6 +23,7 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
     private static ObjectMapper createDefaultMapper() {
         final ObjectMapper result = new ObjectMapper();
         result.enable(SerializationFeature.INDENT_OUTPUT);
+		result.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         return result;
     }
