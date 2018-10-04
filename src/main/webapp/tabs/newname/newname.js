@@ -31,14 +31,15 @@ $(document).ready(function () {
 				pdf: $(this).find("[name='name-pdf']").val(),
 				ordinances: $(this).find("[name='name-ordinances']:checked").map(function () {
 					return $(this).data('enum-value');
-				}).get(),
-				submitter: getWardMemberObject()
+				}).get()
 			};
 		}).get();
+        var formData = new FormData();
+        formData.append("wardMember", new Blob(JSON.stringify(getWardMemberObject()), {type: "application/json"}));
 		var request = $.ajax({
 			url: "api/name",
 			method: "POST",
-			data: submissions,
+			data: formData,
 			dataType: "json"
 		});
 
