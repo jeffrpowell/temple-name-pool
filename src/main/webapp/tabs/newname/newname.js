@@ -28,18 +28,27 @@ $(document).ready(function () {
 //            };
 			return {
 				familySearchId: $(this).find("[name='name-id']").val(),
-				pdf: $(this).find("[name='name-pdf']").val(),
+				pdf: $(this).find("[name='name-pdf']"),
 				ordinances: $(this).find("[name='name-ordinances']:checked").map(function () {
 					return $(this).data('enum-value');
 				}).get()
 			};
 		}).get();
         var formData = new FormData();
-        formData.append("wardMember", new Blob(JSON.stringify(getWardMemberObject()), {type: "application/json"}));
+        formData.append("wardMember", new Blob([JSON.stringify(getWardMemberObject())], {type: "application/json"}));
+        formData.append("numSubmissions", submissions.length);
+        for (var i = 0; i < submissions.length; i++) {
+            var submission = submissions[i];
+            formData.append("familySearchId"+i, submission.familySearchId);
+            formData.append("pdf"+i, submission.pdf[0].files[0], submission.pdf.val());
+            formData.append("ordinances"+i, new Blob([JSON.stringify(submission.ordinances)], {type: "application/json"}));
+        }
 		var request = $.ajax({
 			url: "api/name",
 			method: "POST",
 			data: formData,
+            processData: false,
+            contentType: false,
 			dataType: "json"
 		});
 
