@@ -1,10 +1,12 @@
 package com.jeffrpowell.templenamepool.ws;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeffrpowell.templenamepool.dao.NamePoolDao;
 import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
 import com.jeffrpowell.templenamepool.model.NameRequest;
 import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
+import java.io.IOException;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -12,8 +14,11 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.ext.Providers;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
@@ -28,15 +33,23 @@ public class NameResource {
     public NameResource(NamePoolDao namePoolDao) {
         this.namePoolDao = namePoolDao;
     }
+	
+	private static ObjectMapper getObjectMapper(Providers providers) {
+		ContextResolver<ObjectMapper> cr = providers
+                .getContextResolver(ObjectMapper.class, MediaType.WILDCARD_TYPE);
+        return cr.getContext(Void.class);
+	}
     
     @POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response addNamesToPool(FormDataMultiPart multiPart) {
-        FormDataBodyPart numSubmissionsPart = multiPart.getField("numSubmissions");
+    public Response addNamesToPool(FormDataMultiPart multiPart, @Context Providers providers) throws IOException {
+        ObjectMapper objectMapper = getObjectMapper(providers);
+		FormDataBodyPart numSubmissionsPart = multiPart.getField("numSubmissions");
         Integer numSubmissions = numSubmissionsPart.getEntityAs(Integer.class);
         FormDataBodyPart wardMemberPart = multiPart.getField("wardMember");
         String wardMemberJson = wardMemberPart.getEntityAs(String.class);
-        return Response.ok().build();
+		WardMember wardMember = objectMapper.readValue(wardMemberJson, WardMember.class);
+        return Response.ok(wardMember.getName()).build();
         /*
         List<FormDataBodyPart> bodyParts = multiPart.getFields("files");
 
