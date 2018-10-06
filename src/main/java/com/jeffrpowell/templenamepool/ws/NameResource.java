@@ -1,9 +1,11 @@
 package com.jeffrpowell.templenamepool.ws;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeffrpowell.templenamepool.dao.NamePoolDao;
 import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
 import com.jeffrpowell.templenamepool.model.NameRequest;
+import com.jeffrpowell.templenamepool.model.Ordinance;
 import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
 import java.io.IOException;
@@ -49,6 +51,15 @@ public class NameResource {
         FormDataBodyPart wardMemberPart = multiPart.getField("wardMember");
         String wardMemberJson = wardMemberPart.getEntityAs(String.class);
 		WardMember wardMember = objectMapper.readValue(wardMemberJson, WardMember.class);
+		for (int i = 0; i < numSubmissions; i++)
+		{
+			FormDataBodyPart familySearchIdPart = multiPart.getField("familySearchId"+i);
+			String familySearchId = familySearchIdPart.getEntityAs(String.class);
+			FormDataBodyPart pdfPart = multiPart.getField("pdf"+i);
+			FormDataBodyPart ordinancesPart = multiPart.getField("ordinances"+i);
+			String ordinancesJson = ordinancesPart.getEntityAs(String.class);
+			List<Ordinance> ordinances = objectMapper.readValue(ordinancesJson, new TypeReference<List<Ordinance>>(){});
+		}
         return Response.ok(wardMember.getName()).build();
         /*
         List<FormDataBodyPart> bodyParts = multiPart.getFields("files");

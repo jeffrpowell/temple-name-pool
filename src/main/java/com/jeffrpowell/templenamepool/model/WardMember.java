@@ -4,11 +4,15 @@ import java.util.Objects;
 
 public class WardMember {
 
-    private final String id;
-    private final String name;
-    private final String email;
-    private final String phone;
+    private String id;
+    private String name;
+    private String email;
+    private String phone;
 
+	public WardMember()
+	{
+	}
+	
     public WardMember(String id, String name, String email, String phone) {
         this.id = id;
         this.name = name;
@@ -31,6 +35,26 @@ public class WardMember {
     public String getPhone() {
         return phone;
     }
+
+	public void setId(String id)
+	{
+		this.id = id;
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
+	}
+
+	public void setEmail(String email)
+	{
+		this.email = email;
+	}
+
+	public void setPhone(String phone)
+	{
+		this.phone = phone;
+	}
 
     @Override
     public int hashCode() {
