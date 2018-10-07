@@ -3,37 +3,62 @@ package com.jeffrpowell.templenamepool.model;
 import java.time.LocalDate;
 
 public class NameRequest {
-    private final WardMember requester;
-    private final Ordinance ordinance;
-    private final int numRequested;
-    private final LocalDate targetDate;
+	private WardMember requester;
+	private Ordinance ordinance;
+	private int numRequested;
+	private LocalDate targetDate;
 
-    public NameRequest(WardMember requester, Ordinance ordinance, int numRequested, LocalDate targetDate)
-    {
-	this.requester = requester;
-	this.ordinance = ordinance;
-	this.numRequested = numRequested;
-	this.targetDate = targetDate;
-    }
+	public NameRequest()
+	{
+	}
 
-    public WardMember getRequester()
-    {
-	return requester;
-    }
+	public NameRequest(WardMember requester, Ordinance ordinance, int numRequested, LocalDate targetDate)
+	{
+		this.requester = requester;
+		this.ordinance = ordinance;
+		this.numRequested = numRequested;
+		this.targetDate = targetDate;
+	}
 
-    public Ordinance getOrdinance()
-    {
-	return ordinance;
-    }
+	public WardMember getRequester()
+	{
+		return requester;
+	}
 
-    public int getNumRequested()
-    {
-	return numRequested;
-    }
+	public Ordinance getOrdinance()
+	{
+		return ordinance;
+	}
 
-    public LocalDate getTargetDate()
-    {
-	return targetDate;
-    }
-    
+	public int getNumRequested()
+	{
+		return numRequested;
+	}
+
+	public LocalDate getTargetDate()
+	{
+		return targetDate;
+	}
+
+	public void setRequester(WardMember requester)
+	{
+		this.requester = requester;
+	}
+
+	public void setOrdinance(Ordinance ordinance)
+	{
+		this.ordinance = ordinance;
+	}
+
+	public void setNumRequested(int numRequested)
+	{
+		this.numRequested = numRequested;
+	}
+
+	public void setTargetDate(LocalDate targetDate)
+	{
+		this.targetDate = targetDate;
+	}
+	
+
 }
