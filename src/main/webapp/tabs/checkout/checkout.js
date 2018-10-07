@@ -9,8 +9,8 @@ $(document).ready(function () {
 		};
 		var request = $.ajax({
 			url: "api/name/checkout",
-			method: "POST",
-			data: JSON.stringify(nameRequest),
+			method: "GET",
+			data: "r="+JSON.stringify(nameRequest),
 			contentType: "application/json"
 		});
 

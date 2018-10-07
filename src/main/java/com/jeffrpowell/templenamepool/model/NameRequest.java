@@ -62,7 +62,7 @@ public class NameRequest {
 	}
 	
 	public String getFileName() {
-		return requester.getName() + "-" + ordinance.name().toLowerCase() + "-" + targetDate.format(DateTimeFormatter.ISO_DATE);
+		return requester.getName().replace(" ", "_") + "-" + ordinance.name().toLowerCase() + "-" + targetDate.format(DateTimeFormatter.ISO_DATE);
 	}
 
 }

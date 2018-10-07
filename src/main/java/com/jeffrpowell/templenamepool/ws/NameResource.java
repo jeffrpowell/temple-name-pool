@@ -19,6 +19,7 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -75,10 +76,12 @@ public class NameResource {
         return Response.ok().build();
     }
     
-    @POST
+    @GET
 	@Path("checkout")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response checkoutNames(NameRequest nameRequest) {
+    public Response checkoutNames(@QueryParam("r") String nameRequestJson, @Context Providers providers) throws IOException {
+		ObjectMapper objectMapper = getObjectMapper(providers);
+		NameRequest nameRequest = objectMapper.readValue(nameRequestJson, NameRequest.class);
 		StreamingOutput outStream = out -> {
 			List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
 			ZipOutputStream zipStream = new ZipOutputStream(out);
