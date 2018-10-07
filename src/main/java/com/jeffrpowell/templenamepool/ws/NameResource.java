@@ -8,6 +8,7 @@ import com.jeffrpowell.templenamepool.model.NameSubmission;
 import com.jeffrpowell.templenamepool.model.Ordinance;
 import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -19,11 +20,9 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -76,23 +75,29 @@ public class NameResource {
         return Response.ok().build();
     }
     
-    @GET
+    @POST
 	@Path("checkout")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response checkoutNames(@QueryParam("r") String nameRequestJson, @Context Providers providers) throws IOException {
-		ObjectMapper objectMapper = getObjectMapper(providers);
-		NameRequest nameRequest = objectMapper.readValue(nameRequestJson, NameRequest.class);
+    public Response checkoutNames(NameRequest nameRequest) throws IOException {
 		StreamingOutput outStream = out -> {
 			List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
-			ZipOutputStream zipStream = new ZipOutputStream(out);
-			for (TempleName checkedOutName : checkedOutNames)
+			try (ZipOutputStream zipStream = new ZipOutputStream(new BufferedOutputStream(out)))
 			{
-				try
+				for (TempleName checkedOutName : checkedOutNames)
 				{
-					zipStream.putNextEntry(new ZipEntry(checkedOutName.getFamilySearchId()+".pdf"));
-					zipStream.write(checkedOutName.getPdf());
-					zipStream.closeEntry();
-				} catch (IOException ex) {}
+					try
+					{
+						zipStream.putNextEntry(new ZipEntry(checkedOutName.getFamilySearchId()+".pdf"));
+						zipStream.write(checkedOutName.getPdf());
+						zipStream.closeEntry();
+					} catch (IOException ex) {}
+				}
+			}
+			finally {
+				if(out != null) {
+					out.flush();
+					out.close();
+				}
 			}
 		};
 		return Response.ok(outStream).header("Content-Disposition", "attachment; filename=\""+nameRequest.getFileName()+".zip\"").build();

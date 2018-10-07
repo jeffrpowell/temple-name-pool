@@ -9,9 +9,26 @@ $(document).ready(function () {
 		};
 		var request = $.ajax({
 			url: "api/name/checkout",
-			method: "GET",
-			data: "r="+JSON.stringify(nameRequest),
-			contentType: "application/json"
+			method: "POST",
+			data: JSON.stringify(nameRequest),
+			contentType: "application/json",
+			xhrFields: {
+				responseType: 'arraybuffer'
+			},
+			success: function (data, textStatus, jqXHR) {
+				console.log(data);
+				var fileBlob = new Blob([data.buffer], {type: 'application/octet-stream'});
+				var contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
+				var filename = contentDisposition.split('"')[1];
+				var a = document.createElement('a');
+				var url = window.URL.createObjectURL(fileBlob);
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a)
+			}
 		});
 
 		request.fail(function (jqXHR, textStatus) {
