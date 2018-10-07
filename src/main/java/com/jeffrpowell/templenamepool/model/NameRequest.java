@@ -1,6 +1,7 @@
 package com.jeffrpowell.templenamepool.model;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class NameRequest {
 	private WardMember requester;
@@ -60,5 +61,8 @@ public class NameRequest {
 		this.targetDate = targetDate;
 	}
 	
+	public String getFileName() {
+		return requester.getName() + "-" + ordinance.name().toLowerCase() + "-" + targetDate.format(DateTimeFormatter.ISO_DATE);
+	}
 
 }

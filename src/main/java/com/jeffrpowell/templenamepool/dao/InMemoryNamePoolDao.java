@@ -19,9 +19,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import javax.inject.Singleton;
 import org.jvnet.hk2.annotations.Service;
 
 @Service
+@Singleton
 public class InMemoryNamePoolDao implements NamePoolDao {
 
     private final Map<String, NameSubmission> submittedNames;

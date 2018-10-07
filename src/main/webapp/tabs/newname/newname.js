@@ -48,14 +48,10 @@ $(document).ready(function () {
 			method: "POST",
 			data: formData,
             processData: false,
-            contentType: false,
-			dataType: "json"
+            contentType: false
 		});
 
-		request.done(function (msg) {
-			$("#log").html(msg);
-		});
-
+		request.done(function (msg) {});
 		request.fail(function (jqXHR, textStatus) {
 			alert("Request failed: " + textStatus);
 		});
