@@ -10,6 +10,7 @@ import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
@@ -69,7 +71,10 @@ public class NameResource {
 			FormDataBodyPart pdfPart = multiPart.getField("pdf"+i);
 			List<Object> ordinanceStringList = extractMultiPartField(multiPart, objectMapper, "ordinances"+i, List.class);
 			Set<Ordinance> ordinances = ordinanceStringList.stream().map(obj -> (String)obj).map(Ordinance::valueOf).collect(Collectors.toCollection(() -> EnumSet.noneOf(Ordinance.class)));
-			submissions.add(new NameSubmission(familySearchId, wardMember, pdfPart.getEntityAs(byte[].class), ordinances));
+			try (InputStream pdfStream = pdfPart.getEntityAs(InputStream.class))
+			{
+				submissions.add(new NameSubmission(familySearchId, wardMember, IOUtils.toByteArray(pdfStream), ordinances));
+			}
 		}
 		namePoolDao.addNames(submissions);
         return Response.ok().build();

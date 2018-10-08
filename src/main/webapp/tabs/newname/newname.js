@@ -40,7 +40,7 @@ $(document).ready(function () {
         for (var i = 0; i < submissions.length; i++) {
             var submission = submissions[i];
             formData.append("familySearchId"+i, submission.familySearchId);
-            formData.append("pdf"+i, submission.pdf[0].files[0], submission.pdf.val());
+            formData.append("pdf"+i, submission.pdf[0].files[0]);
             formData.append("ordinances"+i, new Blob([JSON.stringify(submission.ordinances)], {type: "application/json"}));
         }
 		var request = $.ajax({
@@ -48,7 +48,9 @@ $(document).ready(function () {
 			method: "POST",
 			data: formData,
             processData: false,
-            contentType: false
+            contentType: false,
+			async: false,
+			cache: false
 		});
 
 		request.done(function (msg) {});
