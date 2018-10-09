@@ -8,15 +8,23 @@ import com.jeffrpowell.templenamepool.model.NameSubmission;
 import com.jeffrpowell.templenamepool.model.Ordinance;
 import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
-import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -27,7 +35,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
 import org.apache.commons.io.IOUtils;
@@ -39,6 +46,10 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 @Produces(MediaType.APPLICATION_JSON)
 public class NameResource {
     
+	private static final Map<String, String> ZIP_FS_ENV = new HashMap<>();
+	static {
+        ZIP_FS_ENV.put("create", "true");
+	}
     private final NamePoolDao namePoolDao;
 
     @Inject
@@ -55,6 +66,9 @@ public class NameResource {
 	private static <T> T extractMultiPartField(FormDataMultiPart multiPart, ObjectMapper objectMapper, String fieldName, Class<T> clazz) throws IOException {
 		FormDataBodyPart bodyPart = multiPart.getField(fieldName);
 		String json = bodyPart.getEntityAs(String.class);
+		if (clazz == String.class) {
+			return (T) json;
+		}
 		return objectMapper.readValue(json, clazz);
 	}
     
@@ -80,32 +94,41 @@ public class NameResource {
         return Response.ok().build();
     }
     
+	private java.nio.file.Path createTempZipFile(String prefix) throws IOException {
+		java.nio.file.Path zipPath = Files.createTempFile(prefix, ".zip");
+		try (ZipOutputStream tempZipStream = new ZipOutputStream(new FileOutputStream(zipPath.toFile())))
+		{
+			tempZipStream.flush();
+		}
+		return zipPath;
+	}
+	
     @POST
 	@Path("checkout")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response checkoutNames(NameRequest nameRequest) throws IOException {
-		StreamingOutput outStream = out -> {
-			List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
-			try (ZipOutputStream zipStream = new ZipOutputStream(new BufferedOutputStream(out)))
+		List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
+		java.nio.file.Path zipPath = createTempZipFile(nameRequest.getFileName());
+		try (FileSystem zipfs = FileSystems.newFileSystem(zipPath, null))
+		{
+			for (TempleName checkedOutName : checkedOutNames)
 			{
-				for (TempleName checkedOutName : checkedOutNames)
+				try
 				{
-					try
+					java.nio.file.Path pdfPath = zipfs.getPath(checkedOutName.getFamilySearchId()+".pdf");
+					try (InputStream pdfStream = new ByteArrayInputStream(checkedOutName.getPdf()))
 					{
-						zipStream.putNextEntry(new ZipEntry(checkedOutName.getFamilySearchId()+".pdf"));
-						zipStream.write(checkedOutName.getPdf());
-						zipStream.closeEntry();
-					} catch (IOException ex) {}
-				}
+						Files.copy(pdfStream, pdfPath, StandardCopyOption.REPLACE_EXISTING);
+					}
+				} catch (IOException ex) {}
 			}
-			finally {
-				if(out != null) {
-					out.flush();
-					out.close();
-				}
-			}
-		};
-		return Response.ok(outStream).header("Content-Disposition", "attachment; filename=\""+nameRequest.getFileName()+".zip\"").build();
+		}
+		try (InputStream zipStream = new FileInputStream(zipPath.toFile())) {
+			return Response.ok(IOUtils.toByteArray(zipStream)).header("Content-Disposition", "attachment; filename=\""+nameRequest.getFileName()+".zip\"").build();
+		}
+		finally {
+			zipPath.toFile().delete();
+		}
     }
     
     @DELETE
