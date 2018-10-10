@@ -105,7 +105,7 @@ public class NameResource {
 	
     @POST
 	@Path("checkout")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Produces("application/zip")
     public Response checkoutNames(NameRequest nameRequest) throws IOException {
 		List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
 		java.nio.file.Path zipPath = createTempZipFile(nameRequest.getFileName());
@@ -124,7 +124,11 @@ public class NameResource {
 			}
 		}
 		try (InputStream zipStream = new FileInputStream(zipPath.toFile())) {
-			return Response.ok(IOUtils.toByteArray(zipStream)).header("Content-Disposition", "attachment; filename=\""+nameRequest.getFileName()+".zip\"").build();
+			return Response
+				.ok(IOUtils.toByteArray(zipStream))
+				.header("Content-Disposition", "attachment; filename=\""+nameRequest.getFileName()+".zip\"")
+				.header("Content-Transfer-Encoding", "binary")
+				.build();
 		}
 		finally {
 			zipPath.toFile().delete();

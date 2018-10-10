@@ -16,8 +16,7 @@ $(document).ready(function () {
 				responseType: 'arraybuffer'
 			},
 			success: function (data, textStatus, jqXHR) {
-				console.log(data);
-				var fileBlob = new Blob([data.buffer], {type: 'application/octet-stream'});
+				var fileBlob = new Blob([data], {type: 'application/octet-stream'});
 				var contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
 				var filename = contentDisposition.split('"')[1];
 				var a = document.createElement('a');
@@ -27,7 +26,7 @@ $(document).ready(function () {
 				document.body.appendChild(a);
 				a.click();
 				window.URL.revokeObjectURL(url);
-				document.body.removeChild(a)
+				document.body.removeChild(a);
 			}
 		});
 
