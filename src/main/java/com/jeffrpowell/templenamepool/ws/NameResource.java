@@ -46,10 +46,6 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 @Produces(MediaType.APPLICATION_JSON)
 public class NameResource {
     
-	private static final Map<String, String> ZIP_FS_ENV = new HashMap<>();
-	static {
-        ZIP_FS_ENV.put("create", "true");
-	}
     private final NamePoolDao namePoolDao;
 
     @Inject

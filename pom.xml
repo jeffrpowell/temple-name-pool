@@ -92,6 +92,11 @@
 			<artifactId>hk2-locator</artifactId>
 			<version>${hk2.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>3.8.2</version>
+        </dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
