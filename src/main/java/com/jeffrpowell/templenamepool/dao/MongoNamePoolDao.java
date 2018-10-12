@@ -10,31 +10,58 @@ import com.jeffrpowell.templenamepool.model.WardMember;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Projections;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.jvnet.hk2.annotations.Service;
 
 @Service
 public class MongoNamePoolDao implements NamePoolDao{
-    private final MongoCollection nameCollection;
+    private final MongoCollection submissionsCollection;
+    private final MongoCollection<NameSubmission> workerCollection;
     
     @Inject
     public MongoNamePoolDao(MongoClient mongoClient) {
         MongoDatabase db = mongoClient.getDatabase("TempleNamePool");
-        this.nameCollection = db.getCollection("names");
+        this.submissionsCollection = db.getCollection("submissions");
+		/*{
+			familySearchId: "",
+			pdf: [],
+			ordinances: [],
+			supplier: {
+				id: "",
+				name: "",
+				email: "",
+				phone: ""
+			}
+		}*/
+
+        this.workerCollection = db.getCollection("workers", NameSubmission.class);
+		/*{
+			targetDate: "",
+			completed: false,
+			name: {
+				familySearchId: "",
+				pdf: null,
+				ordinances: [],
+			}
+			requester: {
+				id: "",
+				name: "",
+				email: "",
+				phone: ""
+			}
+		}*/
     }
     
     @Override
     public void addNames(Collection<NameSubmission> names) {
-        nameCollection.insertMany(new ArrayList<>(names));
+        submissionsCollection.insertMany(new ArrayList<>(names));
     }
 
     @Override
@@ -69,12 +96,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 
     @Override
     public Set<WardMember> getWardMembers() {
-        return (HashSet) nameCollection.aggregate(Arrays.asList(
-            Aggregates.project(
-                Projections.fields(
-                    Projections.include("supplier"), Projections.excludeId())
-            )
-        )).into(new HashSet<>());
+		Collection<NameSubmission> submissions = submissionsCollection.find().into(new HashSet<>());
+		return submissions.stream().map(NameSubmission::getSupplier).collect(Collectors.toSet());
     }
-    
 }

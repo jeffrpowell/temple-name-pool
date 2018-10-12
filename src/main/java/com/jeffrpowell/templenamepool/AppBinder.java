@@ -2,6 +2,8 @@ package com.jeffrpowell.templenamepool;
 
 import com.jeffrpowell.templenamepool.dao.MongoNamePoolDao;
 import com.jeffrpowell.templenamepool.dao.NamePoolDao;
+import com.jeffrpowell.templenamepool.model.mongo.TempleNamePoolCodecProvider;
+import com.jeffrpowell.templenamepool.model.mongo.WardMemberCodec;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -22,7 +24,8 @@ public class AppBinder extends AbstractBinder {
     private void bindMongoClient() {
         CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(
             MongoClientSettings.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build())
+			CodecRegistries.fromCodecs(new WardMemberCodec()),
+            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build(), new TempleNamePoolCodecProvider())
         );
         MongoClientSettings settings = MongoClientSettings.builder()
             .codecRegistry(pojoCodecRegistry)
