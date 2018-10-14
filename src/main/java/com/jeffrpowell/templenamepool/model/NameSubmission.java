@@ -1,11 +1,13 @@
 package com.jeffrpowell.templenamepool.model;
 
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
 public class NameSubmission extends TempleName {
 
     private WardMember supplier;
+	private Set<Ordinance> remainingOrdinances;
     private boolean checkedOut;
     
     public NameSubmission() {
@@ -16,6 +18,7 @@ public class NameSubmission extends TempleName {
     public NameSubmission(String familySearchId, WardMember supplier, byte[] pdf, Set<Ordinance> ordinances, boolean male, boolean checkedOut) {
         super(familySearchId, pdf, ordinances, male);
         this.supplier = supplier;
+		this.remainingOrdinances = EnumSet.copyOf(ordinances);
         this.checkedOut = checkedOut;
     }
 
@@ -35,28 +38,44 @@ public class NameSubmission extends TempleName {
         this.checkedOut = checkedOut;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 19 * hash + super.hashCode();
-        hash = 19 * hash + Objects.hashCode(this.supplier);
-        hash = 19 * hash + (this.checkedOut ? 1 : 0);
-        return hash;
-    }
+	public Set<Ordinance> getRemainingOrdinances()
+	{
+		return remainingOrdinances;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final NameSubmission other = (NameSubmission) obj;
-        if (!Objects.equals(this.familySearchId, other.familySearchId)) {
+	public void setRemainingOrdinances(Set<Ordinance> remainingOrdinances)
+	{
+		this.remainingOrdinances = remainingOrdinances;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 7;
+		hash = 29 * hash + super.hashCode();
+		hash = 29 * hash + Objects.hashCode(this.supplier);
+		hash = 29 * hash + Objects.hashCode(this.remainingOrdinances);
+		hash = 29 * hash + (this.checkedOut ? 1 : 0);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+		{
+			return true;
+		}
+		if (obj == null)
+		{
+			return false;
+		}
+		if (getClass() != obj.getClass())
+		{
+			return false;
+		}
+		final NameSubmission other = (NameSubmission) obj;
+		if (!Objects.equals(this.familySearchId, other.familySearchId)) {
             return false;
         }
         if (!Objects.equals(this.ordinances, other.ordinances)) {
@@ -68,8 +87,14 @@ public class NameSubmission extends TempleName {
         if (this.checkedOut != other.checkedOut) {
             return false;
         }
-        return Objects.equals(this.supplier, other.supplier);
-    }
-
-
+		if (this.checkedOut != other.checkedOut)
+		{
+			return false;
+		}
+		if (!Objects.equals(this.supplier, other.supplier))
+		{
+			return false;
+		}
+		return Objects.equals(this.remainingOrdinances, other.remainingOrdinances);
+	}
 }

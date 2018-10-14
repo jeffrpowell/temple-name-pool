@@ -1,5 +1,6 @@
 package com.jeffrpowell.templenamepool.dao;
 
+import com.jeffrpowell.templenamepool.model.CheckedOutName;
 import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
 import com.jeffrpowell.templenamepool.model.NameRequest;
 import com.jeffrpowell.templenamepool.model.NameSubmission;
@@ -11,12 +12,14 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.jvnet.hk2.annotations.Service;
@@ -24,7 +27,7 @@ import org.jvnet.hk2.annotations.Service;
 @Service
 public class MongoNamePoolDao implements NamePoolDao{
     private final MongoCollection<NameSubmission> submissionsCollection;
-    private final MongoCollection workerCollection;
+    private final MongoCollection<CheckedOutName> workerCollection;
     
     @Inject
     public MongoNamePoolDao(MongoClient mongoClient) {
@@ -44,7 +47,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 			}
 		}*/
 
-        this.workerCollection = db.getCollection("workers");
+        this.workerCollection = db.getCollection("workers", CheckedOutName.class);
 		/*{
 			targetDate: "",
 			completed: false,
@@ -73,18 +76,34 @@ public class MongoNamePoolDao implements NamePoolDao{
             Filters.and(
                 Filters.eq("checkedOut", false), 
                 Filters.eq("male", request.isMaleRequested()), 
-                Filters.eq("ordinances", request.getOrdinance().name())
+                Filters.eq("remainingOrdinances", request.getOrdinance().name())
             )
-        ).into(new ArrayList<>());
+        ).limit(request.getNumRequested()).into(new ArrayList<>());
+		submissionsCollection.updateMany(Filters.in("_id", matchingSubmissions.stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList())), Updates.set("checkedOut", true));
+		workerCollection.insertMany(matchingSubmissions.stream().map(name -> new CheckedOutName(request.getRequester(), false, name, request.getTargetDate())).collect(Collectors.toList()));
         return matchingSubmissions.stream()
             .map(submission -> (TempleName) submission)
             .collect(Collectors.toList());
     }
-
+	
     @Override
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+		Map<String, NameSubmission> submittedNames = submissionsCollection
+			.find(Filters.in("_id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())))
+			.into(new ArrayList<>())
+			.stream()
+			.collect(Collectors.toMap(
+				NameSubmission::getFamilySearchId,
+				Function.identity()
+			));
+		names.forEach(name ->
+		{
+			NameSubmission nameSubmission = submittedNames.get(name.getFamilySearchId());
+			nameSubmission.setCheckedOut(false);
+			nameSubmission.setRemainingOrdinances(nameSubmission.getRemainingOrdinances().stream().filter(ord -> !name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
+		});
+		submittedNames.values().forEach(name -> submissionsCollection.replaceOne(Filters.eq("_id", name.getFamilySearchId()), name));
+	}
 
     @Override
     public Statistics generateStatistics() {
@@ -108,7 +127,10 @@ public class MongoNamePoolDao implements NamePoolDao{
 
     @Override
     public Set<WardMember> getWardMembers() {
-		Collection<NameSubmission> submissions = submissionsCollection.find().into(new HashSet<>());
-		return submissions.stream().map(NameSubmission::getSupplier).collect(Collectors.toSet());
+		Set<NameSubmission> submissions = submissionsCollection.find().into(new HashSet<>());
+		Set<CheckedOutName> checkouts = workerCollection.find().into(new HashSet<>());
+		Set<WardMember> members = submissions.stream().map(NameSubmission::getSupplier).collect(Collectors.toSet());
+		members.addAll(checkouts.stream().map(CheckedOutName::getRequester).collect(Collectors.toSet()));
+		return members;
     }
 }
