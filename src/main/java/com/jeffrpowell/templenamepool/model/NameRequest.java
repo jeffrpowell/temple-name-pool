@@ -7,17 +7,19 @@ public class NameRequest {
 	private WardMember requester;
 	private Ordinance ordinance;
 	private int numRequested;
+    private boolean maleRequested;
 	private LocalDate targetDate;
 
 	public NameRequest()
 	{
 	}
 
-	public NameRequest(WardMember requester, Ordinance ordinance, int numRequested, LocalDate targetDate)
+	public NameRequest(WardMember requester, Ordinance ordinance, int numRequested, boolean maleRequested, LocalDate targetDate)
 	{
 		this.requester = requester;
 		this.ordinance = ordinance;
 		this.numRequested = numRequested;
+        this.maleRequested = maleRequested;
 		this.targetDate = targetDate;
 	}
 
@@ -36,6 +38,10 @@ public class NameRequest {
 		return numRequested;
 	}
 
+    public boolean isMaleRequested() {
+        return maleRequested;
+    }
+    
 	public LocalDate getTargetDate()
 	{
 		return targetDate;
@@ -55,6 +61,10 @@ public class NameRequest {
 	{
 		this.numRequested = numRequested;
 	}
+
+    public void setMaleRequested(boolean maleRequested) {
+        this.maleRequested = maleRequested;
+    }
 
 	public void setTargetDate(LocalDate targetDate)
 	{

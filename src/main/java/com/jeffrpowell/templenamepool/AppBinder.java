@@ -1,9 +1,8 @@
 package com.jeffrpowell.templenamepool;
 
+import com.jeffrpowell.templenamepool.dao.InMemoryNamePoolDao;
 import com.jeffrpowell.templenamepool.dao.MongoNamePoolDao;
 import com.jeffrpowell.templenamepool.dao.NamePoolDao;
-import com.jeffrpowell.templenamepool.model.mongo.TempleNamePoolCodecProvider;
-import com.jeffrpowell.templenamepool.model.mongo.WardMemberCodec;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -17,15 +16,20 @@ public class AppBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
-        bindMongoClient();
-        bind(MongoNamePoolDao.class).to(NamePoolDao.class).in(Singleton.class);
+        try {
+            bindMongoClient();
+            bind(MongoNamePoolDao.class).to(NamePoolDao.class).in(Singleton.class);
+        }
+        catch (Exception e) {
+            System.err.println(e);
+            bind(InMemoryNamePoolDao.class).to(NamePoolDao.class).in(Singleton.class);
+        }
     }
 
     private void bindMongoClient() {
         CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(
             MongoClientSettings.getDefaultCodecRegistry(),
-			CodecRegistries.fromCodecs(new WardMemberCodec()),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build(), new TempleNamePoolCodecProvider())
+            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build())
         );
         MongoClientSettings settings = MongoClientSettings.builder()
             .codecRegistry(pojoCodecRegistry)

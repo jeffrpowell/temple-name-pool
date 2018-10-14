@@ -57,7 +57,7 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testAddNames()
 	{
-		List<NameSubmission> input = Collections.singletonList(new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_SPOUSE)));
+		List<NameSubmission> input = Collections.singletonList(new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_SPOUSE), true, false));
 		instance.addNames(input);
 		assertTrue("Didn't add name", submittedNames.containsKey(FSID1));
 		assertTrue("Didn't make endowment available", availableOrdinances.containsKey(Ordinance.ENDOWMENT));
@@ -69,8 +69,8 @@ public class InMemoryNamePoolDaoTest
 	public void testAddMultipleNames()
 	{
 		List<NameSubmission> input = new ArrayList<>();
-		input.add(new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_SPOUSE)));
-		input.add(new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY, Ordinance.ENDOWMENT)));
+		input.add(new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_SPOUSE), true, false));
+		input.add(new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY, Ordinance.ENDOWMENT), true, false));
 		instance.addNames(input);
 		assertEquals("Didn't add all names", 2, submittedNames.size());
 		assertEquals("Didn't add all endowments available", 2, availableOrdinances.get(Ordinance.ENDOWMENT).size());
@@ -82,11 +82,11 @@ public class InMemoryNamePoolDaoTest
 	public void testCheckoutNames()
 	{
 		availableOrdinances.put(Ordinance.ENDOWMENT, Stream.of(FSID1, FSID2).collect(Collectors.toList()));
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
-		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.ENDOWMENT, 1, LocalDate.of(2018, Month.OCTOBER, 1)));
+		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.ENDOWMENT, 1, true, LocalDate.of(2018, Month.OCTOBER, 1)));
 		verify(checkedOutNames).containsKey(FSID1);
 		assertEquals("Didn't obey request limit", 1, checkout.size());
 		assertEquals("Wrong name checked out", name1, checkout.get(0));
@@ -98,11 +98,11 @@ public class InMemoryNamePoolDaoTest
 	public void testCheckoutNames_none()
 	{
 		availableOrdinances.put(Ordinance.INITIATORY, Stream.of(FSID1, FSID2).collect(Collectors.toList()));
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
-		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.ENDOWMENT, 1, LocalDate.of(2018, Month.OCTOBER, 1)));
+		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.ENDOWMENT, 1, true, LocalDate.of(2018, Month.OCTOBER, 1)));
 		verify(checkedOutNames, never()).containsKey(anyString());
 		assertTrue("Grabbed wrong ordinance", checkout.isEmpty());
 		assertTrue("No names have been checked out", checkedOutNames.isEmpty());
@@ -113,13 +113,13 @@ public class InMemoryNamePoolDaoTest
 	{
 		availableOrdinances.put(Ordinance.INITIATORY, Stream.of(FSID1, FSID2).collect(Collectors.toList()));
 		availableOrdinances.put(Ordinance.ENDOWMENT, Stream.of(FSID2, FSID3).collect(Collectors.toList()));
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT));
-		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT), true, false);
+		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
 		submittedNames.put(FSID3, name3);
-		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.INITIATORY, 5, LocalDate.of(2018, Month.OCTOBER, 1)));
+		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.INITIATORY, 5, true, LocalDate.of(2018, Month.OCTOBER, 1)));
 		verify(checkedOutNames).containsKey(FSID1);
 		verify(checkedOutNames).containsKey(FSID2);
 		assertEquals("Tripped up on number of names checked out", 2, checkout.size());
@@ -134,14 +134,14 @@ public class InMemoryNamePoolDaoTest
 	{
 		availableOrdinances.put(Ordinance.INITIATORY, Stream.of(FSID1, FSID2).collect(Collectors.toList()));
 		availableOrdinances.put(Ordinance.ENDOWMENT, Stream.of(FSID2, FSID3).collect(Collectors.toList()));
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT));
-		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT), true, false);
+		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.of(Ordinance.ENDOWMENT), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
 		submittedNames.put(FSID3, name3);
-		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.INITIATORY, 1, LocalDate.of(2018, Month.OCTOBER, 1)));
-		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.INITIATORY, 2, LocalDate.of(2018, Month.OCTOBER, 1)));
+		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.INITIATORY, 1, true, LocalDate.of(2018, Month.OCTOBER, 1)));
+		List<TempleName> checkout = instance.checkoutNames(new NameRequest(WAYNE, Ordinance.INITIATORY, 2, true, LocalDate.of(2018, Month.OCTOBER, 1)));
 		verify(checkedOutNames).containsKey(FSID1);
 		verify(checkedOutNames).containsKey(FSID2);
 		assertEquals("Tripped up on number of names checked out", 1, checkout.size());
@@ -161,9 +161,9 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetOverdueNameCheckouts_basicOverdue()
 	{
-		NameSubmission name = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+		NameSubmission name = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name);
-		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MIN));
+		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
 		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
 		assertEquals(1, overdueNames.size());
 		assertTrue(overdueNames.containsKey(JEFF));
@@ -173,9 +173,9 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetOverdueNameCheckouts_basicNotOverdue()
 	{
-		NameSubmission name = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+		NameSubmission name = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name);
-		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MAX));
+		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MAX));
 		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
 		assertTrue(overdueNames.isEmpty());
 	}
@@ -183,12 +183,12 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetOverdueNameCheckouts_mixedOneRequester()
 	{
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
-		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MAX));
-		checkedOutNames.put(FSID2, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MIN));
+		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MAX));
+		checkedOutNames.put(FSID2, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
 		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
 		assertEquals(1, overdueNames.size());
 		assertTrue(overdueNames.containsKey(JEFF));
@@ -198,15 +198,15 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetOverdueNameCheckouts_mixedTwoRequesters()
 	{
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
 		submittedNames.put(FSID3, name3);
-		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MAX));
-		checkedOutNames.put(FSID2, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MIN));
-		checkedOutNames.put(FSID3, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 1, LocalDate.MIN));
+		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MAX));
+		checkedOutNames.put(FSID2, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
+		checkedOutNames.put(FSID3, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
 		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
 		assertEquals(2, overdueNames.size());
 		assertTrue(overdueNames.containsKey(JEFF));
@@ -218,13 +218,13 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testMarkNamesAsCompleted()
 	{
-		NameSubmission nameSubmission = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY, Ordinance.ENDOWMENT));
+		NameSubmission nameSubmission = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY, Ordinance.ENDOWMENT), true, false);
 		submittedNames.put(FSID1, nameSubmission);
 		availableOrdinances.put(Ordinance.BAPTISM_CONFIRMATION, Stream.of(FSID1).collect(Collectors.toList()));
 		availableOrdinances.put(Ordinance.INITIATORY, Stream.of(FSID1).collect(Collectors.toList()));
 		availableOrdinances.put(Ordinance.ENDOWMENT, Stream.of(FSID1).collect(Collectors.toList()));
-		checkedOutNames.put(FSID1, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 2, LocalDate.of(2018, Month.OCTOBER, 1)));
-		CompletedTempleOrdinances nameCompletion = new CompletedTempleOrdinances(FSID1, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION));
+		checkedOutNames.put(FSID1, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 2, true, LocalDate.of(2018, Month.OCTOBER, 1)));
+		CompletedTempleOrdinances nameCompletion = new CompletedTempleOrdinances(FSID1, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION), true);
 		instance.markNamesAsCompleted(Collections.singletonList(nameCompletion));
 		assertFalse("Didn't remove available ordinance", availableOrdinances.get(Ordinance.BAPTISM_CONFIRMATION).contains(FSID1));
 		assertTrue("Removed an ordinance that wasn't completed yet", availableOrdinances.get(Ordinance.INITIATORY).contains(FSID1));
@@ -237,13 +237,13 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testMarkNamesAsCompleted_noneCompleted()
 	{
-		NameSubmission nameSubmission = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY, Ordinance.ENDOWMENT));
+		NameSubmission nameSubmission = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY, Ordinance.ENDOWMENT), true, false);
 		submittedNames.put(FSID1, nameSubmission);
 		availableOrdinances.put(Ordinance.BAPTISM_CONFIRMATION, Stream.of(FSID1).collect(Collectors.toList()));
 		availableOrdinances.put(Ordinance.INITIATORY, Stream.of(FSID1).collect(Collectors.toList()));
 		availableOrdinances.put(Ordinance.ENDOWMENT, Stream.of(FSID1).collect(Collectors.toList()));
-		checkedOutNames.put(FSID1, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 2, LocalDate.of(2018, Month.OCTOBER, 1)));
-		CompletedTempleOrdinances nameCompletion = new CompletedTempleOrdinances(FSID1, WAYNE, EnumSet.noneOf(Ordinance.class));
+		checkedOutNames.put(FSID1, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 2, true, LocalDate.of(2018, Month.OCTOBER, 1)));
+		CompletedTempleOrdinances nameCompletion = new CompletedTempleOrdinances(FSID1, WAYNE, EnumSet.noneOf(Ordinance.class), true);
 		instance.markNamesAsCompleted(Collections.singletonList(nameCompletion));
 		assertTrue("Removed an ordinance that wasn't completed yet", availableOrdinances.get(Ordinance.BAPTISM_CONFIRMATION).contains(FSID1));
 		assertTrue("Removed an ordinance that wasn't completed yet", availableOrdinances.get(Ordinance.INITIATORY).contains(FSID1));
@@ -260,17 +260,17 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetCompletedOrdinancesByCompleter()
 	{
-		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+		NameSubmission name1 = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission name2 = new NameSubmission(FSID2, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission name3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name1);
 		submittedNames.put(FSID2, name2);
 		submittedNames.put(FSID3, name3);
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID1, JEFF, EnumSet.allOf(Ordinance.class)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, JEFF, EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE)));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID1, JEFF, EnumSet.allOf(Ordinance.class), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, JEFF, EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE), true));
 		Map<WardMember, List<CompletedTempleOrdinances>> completedOrdinancesByCompleter = instance.getCompletedOrdinancesByCompleter();
 		assertTrue(completedOrdinancesByCompleter.containsKey(JEFF));
 		assertTrue(completedOrdinancesByCompleter.containsKey(WAYNE));
@@ -281,20 +281,20 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetCompletedOrdinancesBySubmitter()
 	{
-		TempleName name1 = new TempleName(FSID1, null, EnumSet.complementOf(EnumSet.of(Ordinance.SEALING_SPOUSE)));
-		TempleName name2 = new TempleName(FSID2, null, EnumSet.allOf(Ordinance.class));
-		TempleName name3 = new TempleName(FSID3, null, EnumSet.allOf(Ordinance.class));
-		NameSubmission submit1 = new NameSubmission(FSID1, WAYNE, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission submit2 = new NameSubmission(FSID2, JEFF, new byte[0], EnumSet.allOf(Ordinance.class));
-		NameSubmission submit3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class));
+		TempleName name1 = new TempleName(FSID1, null, EnumSet.complementOf(EnumSet.of(Ordinance.SEALING_SPOUSE)), true);
+		TempleName name2 = new TempleName(FSID2, null, EnumSet.allOf(Ordinance.class), true);
+		TempleName name3 = new TempleName(FSID3, null, EnumSet.allOf(Ordinance.class), true);
+		NameSubmission submit1 = new NameSubmission(FSID1, WAYNE, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission submit2 = new NameSubmission(FSID2, JEFF, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
+		NameSubmission submit3 = new NameSubmission(FSID3, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, submit1);
 		submittedNames.put(FSID2, submit2);
 		submittedNames.put(FSID3, submit3);
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID1, JEFF, EnumSet.complementOf(EnumSet.of(Ordinance.SEALING_SPOUSE))));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION)));
-		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, JEFF, EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE)));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID1, JEFF, EnumSet.complementOf(EnumSet.of(Ordinance.SEALING_SPOUSE)), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION, Ordinance.INITIATORY), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID2, JEFF, EnumSet.of(Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, WAYNE, EnumSet.of(Ordinance.BAPTISM_CONFIRMATION), true));
+		completedOrdinances.add(new CompletedTempleOrdinances(FSID3, JEFF, EnumSet.of(Ordinance.INITIATORY, Ordinance.ENDOWMENT, Ordinance.SEALING_PARENTS, Ordinance.SEALING_SPOUSE), true));
 		Map<WardMember, List<TempleName>> completedOrdinancesBySubmitter = instance.getCompletedOrdinancesBySubmitter();
 		assertTrue(completedOrdinancesBySubmitter.containsKey(WAYNE));
 		assertTrue(completedOrdinancesBySubmitter.containsKey(JEFF));

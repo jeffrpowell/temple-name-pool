@@ -19,6 +19,7 @@ $(document).ready(function () {
 //                familySearchId: "123-4567",
 //                pdf:[],
 //                ordinances:[],
+//                male: true,
 //                supplier:{
 //                    id: "1",
 //                    email: "email@email.com",
@@ -31,7 +32,8 @@ $(document).ready(function () {
 				pdf: $(this).find("[name='name-pdf']"),
 				ordinances: $(this).find("[name='name-ordinances']:checked").map(function () {
 					return $(this).data('enum-value');
-				}).get()
+				}).get(),
+                male: $(this).find("[name='name-gender']:checked").val()
 			};
 		}).get();
         var formData = new FormData();
@@ -42,6 +44,7 @@ $(document).ready(function () {
             formData.append("familySearchId"+i, submission.familySearchId);
             formData.append("pdf"+i, submission.pdf[0].files[0]);
             formData.append("ordinances"+i, new Blob([JSON.stringify(submission.ordinances)], {type: "application/json"}));
+            formData.append("male"+i, submission.male);
         }
 		var request = $.ajax({
 			url: "api/name",

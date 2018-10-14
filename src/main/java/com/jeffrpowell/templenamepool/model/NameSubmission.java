@@ -5,22 +5,42 @@ import java.util.Set;
 
 public class NameSubmission extends TempleName {
 
-    private final WardMember supplier;
+    private WardMember supplier;
+    private boolean checkedOut;
+    
+    public NameSubmission() {
+        super();
+        this.supplier = null;
+    }
 
-    public NameSubmission(String familySearchId, WardMember supplier, byte[] pdf, Set<Ordinance> ordinances) {
-        super(familySearchId, pdf, ordinances);
+    public NameSubmission(String familySearchId, WardMember supplier, byte[] pdf, Set<Ordinance> ordinances, boolean male, boolean checkedOut) {
+        super(familySearchId, pdf, ordinances, male);
         this.supplier = supplier;
+        this.checkedOut = checkedOut;
     }
 
     public WardMember getSupplier() {
         return supplier;
     }
 
+    public void setSupplier(WardMember supplier) {
+        this.supplier = supplier;
+    }
+
+    public boolean isCheckedOut() {
+        return checkedOut;
+    }
+
+    public void setCheckedOut(boolean checkedOut) {
+        this.checkedOut = checkedOut;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 89 * hash + super.hashCode();
-        hash = 89 * hash + Objects.hashCode(this.supplier);
+        hash = 19 * hash + super.hashCode();
+        hash = 19 * hash + Objects.hashCode(this.supplier);
+        hash = 19 * hash + (this.checkedOut ? 1 : 0);
         return hash;
     }
 
@@ -36,13 +56,20 @@ public class NameSubmission extends TempleName {
             return false;
         }
         final NameSubmission other = (NameSubmission) obj;
-		if (!Objects.equals(this.familySearchId, other.familySearchId)) {
+        if (!Objects.equals(this.familySearchId, other.familySearchId)) {
             return false;
         }
         if (!Objects.equals(this.ordinances, other.ordinances)) {
 			return false;
 		}
+        if (!Objects.equals(this.male, other.male)) {
+			return false;
+		}
+        if (this.checkedOut != other.checkedOut) {
+            return false;
+        }
         return Objects.equals(this.supplier, other.supplier);
     }
+
 
 }

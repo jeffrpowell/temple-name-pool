@@ -6,8 +6,8 @@ import java.util.Set;
 public class CompletedTempleOrdinances extends TempleName{
     private final WardMember completer;
     
-    public CompletedTempleOrdinances(String familySearchId, WardMember completer, Set<Ordinance> ordinances) {
-        super(familySearchId, null, ordinances);
+    public CompletedTempleOrdinances(String familySearchId, WardMember completer, Set<Ordinance> ordinances, boolean male) {
+        super(familySearchId, null, ordinances, male);
         this.completer = completer;
     }
 
@@ -39,6 +39,9 @@ public class CompletedTempleOrdinances extends TempleName{
             return false;
         }
         if (!Objects.equals(this.ordinances, other.ordinances)) {
+            return false;
+        }
+        if (!Objects.equals(this.male, other.male)) {
             return false;
         }
         return Objects.equals(this.completer, other.completer);

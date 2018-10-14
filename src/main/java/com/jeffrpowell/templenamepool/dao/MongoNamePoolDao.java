@@ -10,6 +10,7 @@ import com.jeffrpowell.templenamepool.model.WardMember;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -22,17 +23,19 @@ import org.jvnet.hk2.annotations.Service;
 
 @Service
 public class MongoNamePoolDao implements NamePoolDao{
-    private final MongoCollection submissionsCollection;
-    private final MongoCollection<NameSubmission> workerCollection;
+    private final MongoCollection<NameSubmission> submissionsCollection;
+    private final MongoCollection workerCollection;
     
     @Inject
     public MongoNamePoolDao(MongoClient mongoClient) {
         MongoDatabase db = mongoClient.getDatabase("TempleNamePool");
-        this.submissionsCollection = db.getCollection("submissions");
+        this.submissionsCollection = db.getCollection("submissions", NameSubmission.class);
 		/*{
 			familySearchId: "",
 			pdf: [],
 			ordinances: [],
+            male: false,
+            checkedOut: false,
 			supplier: {
 				id: "",
 				name: "",
@@ -41,7 +44,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 			}
 		}*/
 
-        this.workerCollection = db.getCollection("workers", NameSubmission.class);
+        this.workerCollection = db.getCollection("workers");
 		/*{
 			targetDate: "",
 			completed: false,
@@ -66,7 +69,16 @@ public class MongoNamePoolDao implements NamePoolDao{
 
     @Override
     public List<TempleName> checkoutNames(NameRequest request) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<NameSubmission> matchingSubmissions = submissionsCollection.find(
+            Filters.and(
+                Filters.eq("checkedOut", false), 
+                Filters.eq("male", request.isMaleRequested()), 
+                Filters.eq("ordinances", request.getOrdinance().name())
+            )
+        ).into(new ArrayList<>());
+        return matchingSubmissions.stream()
+            .map(submission -> (TempleName) submission)
+            .collect(Collectors.toList());
     }
 
     @Override

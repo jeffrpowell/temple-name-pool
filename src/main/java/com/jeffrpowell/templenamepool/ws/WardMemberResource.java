@@ -27,9 +27,6 @@ public class WardMemberResource {
     @GET
     public List<WardMember> getWardMembers() {
         Set<WardMember> members = namePoolDao.getWardMembers();
-		members.add(new WardMember("1", "Jeff Powell", "jeff@email.com", "208-123-4567"));
-		members.add(new WardMember("2", "Lyn Misner", "lyn@email.com", "208-123-1234"));
-		members.add(new WardMember("3", "Wayne Milward", "wayne@email.com", "208-123-4312"));
 		return new ArrayList<>(members);
     }
 }

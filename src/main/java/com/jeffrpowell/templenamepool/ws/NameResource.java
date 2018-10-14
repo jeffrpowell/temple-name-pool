@@ -81,9 +81,10 @@ public class NameResource {
 			FormDataBodyPart pdfPart = multiPart.getField("pdf"+i);
 			List<Object> ordinanceStringList = extractMultiPartField(multiPart, objectMapper, "ordinances"+i, List.class);
 			Set<Ordinance> ordinances = ordinanceStringList.stream().map(obj -> (String)obj).map(Ordinance::valueOf).collect(Collectors.toCollection(() -> EnumSet.noneOf(Ordinance.class)));
-			try (InputStream pdfStream = pdfPart.getEntityAs(InputStream.class))
+            boolean male = extractMultiPartField(multiPart, objectMapper, "male"+i, Boolean.class);
+            try (InputStream pdfStream = pdfPart.getEntityAs(InputStream.class))
 			{
-				submissions.add(new NameSubmission(familySearchId, wardMember, IOUtils.toByteArray(pdfStream), ordinances));
+				submissions.add(new NameSubmission(familySearchId, wardMember, IOUtils.toByteArray(pdfStream), ordinances, male, false));
 			}
 		}
 		namePoolDao.addNames(submissions);

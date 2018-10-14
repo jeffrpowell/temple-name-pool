@@ -117,7 +117,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
                 )
             ));
         List<TempleName> completedNames = completedOrdinancesByName.entrySet().stream()
-            .map(entry -> new TempleName(entry.getKey(), null, entry.getValue()))
+            .map(entry -> new TempleName(entry.getKey(), null, entry.getValue(), submittedNames.get(entry.getKey()).isMale()))
             .collect(Collectors.toList());
         Map<String, WardMember> submitters = completedOrdinancesByName.keySet().stream()
             .map(submittedNames::get)

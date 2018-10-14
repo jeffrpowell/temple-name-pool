@@ -5,6 +5,7 @@ $(document).ready(function () {
 			ordinance: $("#checkoutNames input[name='checkoutOrdinance']:checked").val(),
 			requester: getWardMemberObject(),
 			numRequested: parseInt($("#checkoutNames input[name='numNamesCheckout']").val()),
+            male: $("#checkoutNames input[name='checkoutGender']:checked").val(),
 			targetDate: $("#checkoutNames input[name='returnDate']").val()
 		};
 		var request = $.ajax({
