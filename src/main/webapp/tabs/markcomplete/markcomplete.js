@@ -1,11 +1,21 @@
 $(document).ready(function () {
 	
+	$nameTemplate = "";
+
+	$.get("tabs/markcomplete/checkedOutNameField.html", function ($template) {
+		$nameTemplate = $template;
+	});
+	
+	$.get("api/stats/wardMember", {includeNotDue: true}, function(response) {
+		console.log(response);
+	});
+	
 	$("#requestCheckout").click(function(){
 		var nameRequest = {
 			ordinance: $("#checkoutNames input[name='checkoutOrdinance']:checked").val(),
 			requester: getWardMemberObject(),
 			numRequested: parseInt($("#checkoutNames input[name='numNamesCheckout']").val()),
-            maleRequested: $("#checkoutNames input[name='checkoutGender']:checked").val(),
+            male: $("#checkoutNames input[name='checkoutGender']:checked").val(),
 			targetDate: $("#checkoutNames input[name='returnDate']").val()
 		};
 		var request = $.ajax({

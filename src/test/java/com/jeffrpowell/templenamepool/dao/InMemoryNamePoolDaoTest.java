@@ -154,7 +154,7 @@ public class InMemoryNamePoolDaoTest
 	@org.junit.Test
 	public void testGetOverdueNameCheckouts_none()
 	{
-		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
+		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts(false);
 		assertTrue(overdueNames.isEmpty());
 	}
 
@@ -164,7 +164,7 @@ public class InMemoryNamePoolDaoTest
 		NameSubmission name = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name);
 		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
-		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
+		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts(false);
 		assertEquals(1, overdueNames.size());
 		assertTrue(overdueNames.containsKey(JEFF));
 		assertEquals(new OverdueName(name, LocalDate.MIN), overdueNames.get(JEFF).get(0));
@@ -176,7 +176,7 @@ public class InMemoryNamePoolDaoTest
 		NameSubmission name = new NameSubmission(FSID1, LYN, new byte[0], EnumSet.allOf(Ordinance.class), true, false);
 		submittedNames.put(FSID1, name);
 		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MAX));
-		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
+		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts(false);
 		assertTrue(overdueNames.isEmpty());
 	}
 
@@ -189,7 +189,7 @@ public class InMemoryNamePoolDaoTest
 		submittedNames.put(FSID2, name2);
 		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MAX));
 		checkedOutNames.put(FSID2, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
-		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
+		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts(false);
 		assertEquals(1, overdueNames.size());
 		assertTrue(overdueNames.containsKey(JEFF));
 		assertEquals(new OverdueName(name2, LocalDate.MIN), overdueNames.get(JEFF).get(0));
@@ -207,7 +207,7 @@ public class InMemoryNamePoolDaoTest
 		checkedOutNames.put(FSID1, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MAX));
 		checkedOutNames.put(FSID2, new NameRequest(JEFF, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
 		checkedOutNames.put(FSID3, new NameRequest(WAYNE, Ordinance.BAPTISM_CONFIRMATION, 1, true, LocalDate.MIN));
-		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts();
+		Map<WardMember, List<OverdueName>> overdueNames = instance.getOverdueNameCheckouts(false);
 		assertEquals(2, overdueNames.size());
 		assertTrue(overdueNames.containsKey(JEFF));
 		assertTrue(overdueNames.containsKey(WAYNE));

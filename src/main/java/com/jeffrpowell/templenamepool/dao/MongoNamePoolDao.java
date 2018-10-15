@@ -13,6 +13,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -111,8 +112,16 @@ public class MongoNamePoolDao implements NamePoolDao{
     }
 
     @Override
-    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts(boolean includeNotOverdue) {
+        List<CheckedOutName> overdueNames;
+		if (includeNotOverdue) {
+			overdueNames = workerCollection.find(Filters.eq("completed", false)).into(new ArrayList<>());
+		}
+		else {
+			overdueNames = workerCollection.find(Filters.and(Filters.eq("completed", false), Filters.lt("targetDate", LocalDate.now()))).into(new ArrayList<>());
+		}
+		return overdueNames.stream().collect(Collectors.groupingBy(CheckedOutName::getRequester,
+                Collectors.mapping(name -> new OverdueName(name.getName(), name.getTargetDate()), Collectors.toList())));
     }
 
     @Override

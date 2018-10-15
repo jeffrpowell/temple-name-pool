@@ -19,7 +19,7 @@ public interface NamePoolDao {
     public List<TempleName> checkoutNames(NameRequest request);
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names);
     public Statistics generateStatistics();
-    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts();
+    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts(boolean includeNotOverdue);
     public Map<WardMember, List<TempleName>> getCompletedOrdinancesBySubmitter();
     public Map<WardMember, List<CompletedTempleOrdinances>> getCompletedOrdinancesByCompleter();
 	public Set<WardMember> getWardMembers();

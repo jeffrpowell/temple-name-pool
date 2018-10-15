@@ -99,9 +99,9 @@ public class InMemoryNamePoolDao implements NamePoolDao {
     }
 
     @Override
-    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts() {
+    public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts(boolean includeNotOverdue) {
         return checkedOutNames.entrySet().stream()
-            .filter(entry -> entry.getValue().getTargetDate().isBefore(LocalDate.now()))
+            .filter(entry -> includeNotOverdue || entry.getValue().getTargetDate().isBefore(LocalDate.now()))
             .collect(Collectors.groupingBy(entry -> entry.getValue().getRequester(),
                 Collectors.mapping(entry -> new OverdueName(submittedNames.get(entry.getKey()), entry.getValue().getTargetDate()), Collectors.toList())));
     }
