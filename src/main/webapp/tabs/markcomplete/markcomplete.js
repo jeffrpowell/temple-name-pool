@@ -1,49 +1,58 @@
 $(document).ready(function () {
 	
-	$nameTemplate = "";
+	var $nameTemplate = "";
+	var checkedOutNames = {};
 
-	$.get("tabs/markcomplete/checkedOutNameField.html", function ($template) {
+	$.get("tabs/markcomplete/checkedOutNameField.tmpl.html", function ($template) {
 		$nameTemplate = $template;
 	});
 	
 	$.get("api/stats/wardMember", {includeNotDue: true}, function(response) {
-		console.log(response);
+		/*
+			{
+				"Lissa Hall" : [ {
+				  "name" : {
+					"familySearchId" : "L14D-T69",
+					"pdf" : "",
+					"ordinances" : [ "BAPTISM_CONFIRMATION" ],
+					"male" : true
+				  },
+				  "dueDate" : [ 2018, 10, 11 ]
+				} ]
+			}
+		 */
+		checkedOutNames = response;
+		refreshPage();
 	});
 	
-	$("#requestCheckout").click(function(){
-		var nameRequest = {
-			ordinance: $("#checkoutNames input[name='checkoutOrdinance']:checked").val(),
-			requester: getWardMemberObject(),
-			numRequested: parseInt($("#checkoutNames input[name='numNamesCheckout']").val()),
-            male: $("#checkoutNames input[name='checkoutGender']:checked").val(),
-			targetDate: $("#checkoutNames input[name='returnDate']").val()
-		};
-		var request = $.ajax({
-			url: "api/name/checkout",
-			method: "POST",
-			data: JSON.stringify(nameRequest),
-			contentType: "application/json",
-			xhrFields: {
-				responseType: 'arraybuffer'
-			},
-			success: function (data, textStatus, jqXHR) {
-				var fileBlob = new Blob([data], {type: 'application/octet-stream'});
-				var contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
-				var filename = contentDisposition.split('"')[1];
-				var a = document.createElement('a');
-				var url = window.URL.createObjectURL(fileBlob);
-				a.href = url;
-				a.download = filename;
-				document.body.appendChild(a);
-				a.click();
-				window.URL.revokeObjectURL(url);
-				document.body.removeChild(a);
+	function refreshPage() {
+		var wardMemberName = $("#wardMember [name='ward-member-name']").val();
+		$("#checkedOutNamesList").empty();
+		console.log(wardMemberName);
+		console.log(checkedOutNames);
+		if (checkedOutNames.hasOwnProperty(wardMemberName)){
+			var namesToDisplay = checkedOutNames[wardMemberName];
+			console.log(namesToDisplay);
+			for (var i = 0; i < namesToDisplay.length; i++){
+				var checkedOutName = namesToDisplay[i];
+				$("#checkedOutNamesList").append($nameTemplate);
+				var $nameFieldRoot = $("#checkedOutNamesList .checked-out-name:last-child");
+				$nameFieldRoot.find("input[name='complete-id']").val("FamilySearch Id: " + checkedOutName.name.familySearchId);
+				var dateArr = checkedOutName.dueDate;
+				$nameFieldRoot.find("input[name='complete-date']").val("Target Date: " + dateArr[0] + "-" + dateArr[1] + "-" + dateArr[2]);
+				var ordinances = checkedOutName.name.ordinances;
+				$nameFieldRoot.find("input[name='name-ordinances']").each(function(){
+					if (!ordinances.includes($(this).data('enum-value'))){
+						$(this).prop('disabled', 'disabled');
+						$(this).addClass("disabled");
+					}
+				});
 			}
-		});
-
-		request.fail(function (jqXHR, textStatus) {
-			alert("Request failed: " + textStatus);
-		});
+		}
+	}
+	
+	$("#reloadCompletedNames").click(function(){
+		refreshPage();
 	});
 	
 	function getWardMemberObject() {

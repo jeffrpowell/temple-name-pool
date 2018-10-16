@@ -1,5 +1,5 @@
 $(document).ready(function () {
-	$newNameTemplate = "";
+	var $newNameTemplate = "";
 
 	$.get("tabs/newname/namefield.tmpl.html", function ($template) {
 		$newNameTemplate = $template;

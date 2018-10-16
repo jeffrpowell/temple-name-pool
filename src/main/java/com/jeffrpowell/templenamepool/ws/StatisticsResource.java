@@ -8,6 +8,7 @@ import com.jeffrpowell.templenamepool.model.TempleName;
 import com.jeffrpowell.templenamepool.model.WardMember;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -36,8 +37,12 @@ public class StatisticsResource {
 	
 	@GET
 	@Path("wardMember")
-	public Map<WardMember, List<OverdueName>> getCheckedOutNamesByWardMember(@QueryParam("includeNotDue") @DefaultValue("false") boolean includeNotDue) {
-		return namePoolDao.getOverdueNameCheckouts(includeNotDue);
+	public Map<String, List<OverdueName>> getCheckedOutNamesByWardMember(@QueryParam("includeNotDue") @DefaultValue("false") boolean includeNotDue) {
+		return namePoolDao.getOverdueNameCheckouts(includeNotDue).entrySet().stream()
+			.collect(Collectors.toMap(
+				entry -> entry.getKey().getName(),
+				entry -> entry.getValue()
+			));
 	}
     
     @GET
