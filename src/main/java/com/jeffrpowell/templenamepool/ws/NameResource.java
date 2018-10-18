@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -129,9 +128,22 @@ public class NameResource {
 		}
     }
     
-    @DELETE
-    public Response markNamesAsCompleted(List<CompletedTempleOrdinances> completedOrdinances) {
-        namePoolDao.markNamesAsCompleted(completedOrdinances);
+    @POST
+	@Path("complete")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response markNamesAsCompleted(FormDataMultiPart multiPart, @Context Providers providers) throws IOException {
+        ObjectMapper objectMapper = getObjectMapper(providers);
+		Integer numCompletions = extractMultiPartField(multiPart, objectMapper, "numCompletions", Integer.class);
+		WardMember wardMember = extractMultiPartField(multiPart, objectMapper, "wardMember", WardMember.class);
+		List<CompletedTempleOrdinances> completions = new ArrayList<>();
+		for (int i = 0; i < numCompletions; i++)
+		{
+			String familySearchId = extractMultiPartField(multiPart, objectMapper, "familySearchId"+i, String.class);
+			List<Object> ordinanceStringList = extractMultiPartField(multiPart, objectMapper, "ordinances"+i, List.class);
+			Set<Ordinance> ordinances = ordinanceStringList.stream().map(obj -> (String)obj).map(Ordinance::valueOf).collect(Collectors.toCollection(() -> EnumSet.noneOf(Ordinance.class)));
+			completions.add(new CompletedTempleOrdinances(familySearchId, wardMember, ordinances, false));
+		}
+		namePoolDao.markNamesAsCompleted(completions);
         return Response.ok().build();
     }
 }

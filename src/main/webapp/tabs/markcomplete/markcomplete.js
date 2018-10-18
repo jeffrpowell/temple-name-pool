@@ -28,11 +28,8 @@ $(document).ready(function () {
 	function refreshPage() {
 		var wardMemberName = $("#wardMember [name='ward-member-name']").val();
 		$("#checkedOutNamesList").empty();
-		console.log(wardMemberName);
-		console.log(checkedOutNames);
 		if (checkedOutNames.hasOwnProperty(wardMemberName)){
 			var namesToDisplay = checkedOutNames[wardMemberName];
-			console.log(namesToDisplay);
 			for (var i = 0; i < namesToDisplay.length; i++){
 				var checkedOutName = namesToDisplay[i];
 				$("#checkedOutNamesList").append($nameTemplate);
@@ -53,6 +50,39 @@ $(document).ready(function () {
 	
 	$("#reloadCompletedNames").click(function(){
 		refreshPage();
+	});
+	
+	$("#markNamesComplete").click(function() {
+		var completions = $('#checkedOutNamesList .checked-out-name').map(function () {
+			return {
+				familySearchId: $(this).find("[name='complete-id']").val(),
+				ordinances: $(this).find("[name='complete-ordinances']:checked").map(function () {
+					return $(this).data('enum-value');
+				}).get()
+			};
+		}).get();
+        var formData = new FormData();
+        formData.append("wardMember", new Blob([JSON.stringify(getWardMemberObject())], {type: "application/json"}));
+        formData.append("numCompletions", completions.length);
+        for (var i = 0; i < completions.length; i++) {
+            var completion = completions[i];
+            formData.append("familySearchId"+i, completion.familySearchId);
+            formData.append("ordinances"+i, new Blob([JSON.stringify(completion.ordinances)], {type: "application/json"}));
+        }
+		var request = $.ajax({
+			url: "api/name/complete",
+			method: "POST",
+			data: formData,
+            processData: false,
+            contentType: false,
+			async: false,
+			cache: false
+		});
+
+		request.done(function (msg) {});
+		request.fail(function (jqXHR, textStatus) {
+			alert("Request failed: " + textStatus);
+		});
 	});
 	
 	function getWardMemberObject() {
