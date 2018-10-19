@@ -89,6 +89,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 	
     @Override
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
+		WardMember completer = names.stream().findAny().get().getCompleter();
 		Map<String, NameSubmission> submittedNames = submissionsCollection
 			.find(Filters.in("_id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())))
 			.into(new ArrayList<>())
@@ -97,13 +98,31 @@ public class MongoNamePoolDao implements NamePoolDao{
 				NameSubmission::getFamilySearchId,
 				Function.identity()
 			));
+		Map<String, CheckedOutName> checkedOutNames = workerCollection
+			.find(Filters.and(
+				Filters.eq("requester.name", completer.getName()),
+				Filters.in("name._id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList()))
+			))
+			.into(new ArrayList<>())
+			.stream()
+			.collect(Collectors.toMap(
+				name -> name.getName().getFamilySearchId(),
+				Function.identity()
+			));
 		names.forEach(name ->
 		{
 			NameSubmission nameSubmission = submittedNames.get(name.getFamilySearchId());
+			CheckedOutName checkedOutName = checkedOutNames.get(name.getFamilySearchId());
 			nameSubmission.setCheckedOut(false);
+			checkedOutName.setCompleted(true);
 			nameSubmission.setRemainingOrdinances(nameSubmission.getRemainingOrdinances().stream().filter(ord -> !name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
+			checkedOutName.getName().setOrdinances(checkedOutName.getName().getOrdinances().stream().filter(ord -> name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
 		});
 		submittedNames.values().forEach(name -> submissionsCollection.replaceOne(Filters.eq("_id", name.getFamilySearchId()), name));
+		checkedOutNames.values().forEach(name -> workerCollection.replaceOne(Filters.and(
+			Filters.eq("requester.name", name.getRequester().getName()),
+			Filters.eq("name._id", name.getName().getFamilySearchId())
+		), name));
 	}
 
     @Override

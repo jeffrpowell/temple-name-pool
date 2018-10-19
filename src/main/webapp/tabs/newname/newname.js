@@ -56,7 +56,10 @@ $(document).ready(function () {
 			cache: false
 		});
 
-		request.done(function (msg) {});
+		request.done(function (msg) {
+			$("#newNames").empty();
+			$("#newNames").append($newNameTemplate);
+		});
 		request.fail(function (jqXHR, textStatus) {
 			alert("Request failed: " + textStatus);
 		});

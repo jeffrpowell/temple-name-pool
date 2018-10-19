@@ -7,24 +7,27 @@ $(document).ready(function () {
 		$nameTemplate = $template;
 	});
 	
-	$.get("api/stats/wardMember", {includeNotDue: true}, function(response) {
-		/*
-			{
-				"Lissa Hall" : [ {
-				  "name" : {
-					"familySearchId" : "L14D-T69",
-					"pdf" : "",
-					"ordinances" : [ "BAPTISM_CONFIRMATION" ],
-					"male" : true
-				  },
-				  "dueDate" : [ 2018, 10, 11 ]
-				} ]
-			}
-		 */
-		checkedOutNames = response;
-		refreshPage();
-	});
+	function loadCheckedOutNames() {
+		$.get("api/stats/wardMember", {includeNotDue: true}, function(response) {
+			/*
+				{
+					"Lissa Hall" : [ {
+					  "name" : {
+						"familySearchId" : "L14D-T69",
+						"pdf" : "",
+						"ordinances" : [ "BAPTISM_CONFIRMATION" ],
+						"male" : true
+					  },
+					  "dueDate" : [ 2018, 10, 11 ]
+					} ]
+				}
+			 */
+			checkedOutNames = response;
+			refreshPage();
+		});
+	}
 	
+	loadCheckedOutNames();
 	function refreshPage() {
 		var wardMemberName = $("#wardMember [name='ward-member-name']").val();
 		$("#checkedOutNamesList").empty();
@@ -38,7 +41,7 @@ $(document).ready(function () {
 				var dateArr = checkedOutName.dueDate;
 				$nameFieldRoot.find("input[name='complete-date']").val("Target Date: " + dateArr[0] + "-" + dateArr[1] + "-" + dateArr[2]);
 				var ordinances = checkedOutName.name.ordinances;
-				$nameFieldRoot.find("input[name='name-ordinances']").each(function(){
+				$nameFieldRoot.find("input[name='complete-ordinances']").each(function(){
 					if (!ordinances.includes($(this).data('enum-value'))){
 						$(this).prop('disabled', 'disabled');
 						$(this).addClass("disabled");
@@ -66,7 +69,7 @@ $(document).ready(function () {
         formData.append("numCompletions", completions.length);
         for (var i = 0; i < completions.length; i++) {
             var completion = completions[i];
-            formData.append("familySearchId"+i, completion.familySearchId);
+            formData.append("familySearchId"+i, completion.familySearchId.replace("FamilySearch Id: ", ""));
             formData.append("ordinances"+i, new Blob([JSON.stringify(completion.ordinances)], {type: "application/json"}));
         }
 		var request = $.ajax({
@@ -79,7 +82,9 @@ $(document).ready(function () {
 			cache: false
 		});
 
-		request.done(function (msg) {});
+		request.done(function (msg) {
+			loadCheckedOutNames();
+		});
 		request.fail(function (jqXHR, textStatus) {
 			alert("Request failed: " + textStatus);
 		});
