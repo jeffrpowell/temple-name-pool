@@ -49,8 +49,8 @@ $(document).ready(function() {
 			var options = "<option value=''></option>";
 			for (var i = 0; i < members.length; i++) {
 				var member = members[i];
-				allMembers[member.id] = member;
-				options += "<option value='"+member.id+"' data-obj='"+member+"'>"+member.name+"</option>";
+				allMembers[member.name] = member;
+				options += "<option value='"+member.name+"' data-obj='"+member+"'>"+member.name+"</option>";
 			}
 			return options;
 		});
