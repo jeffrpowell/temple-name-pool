@@ -4,6 +4,7 @@ import com.jeffrpowell.templenamepool.model.CheckedOutName;
 import com.jeffrpowell.templenamepool.model.CompletedTempleOrdinances;
 import com.jeffrpowell.templenamepool.model.NameRequest;
 import com.jeffrpowell.templenamepool.model.NameSubmission;
+import com.jeffrpowell.templenamepool.model.Ordinance;
 import com.jeffrpowell.templenamepool.model.OverdueName;
 import com.jeffrpowell.templenamepool.model.Statistics;
 import com.jeffrpowell.templenamepool.model.TempleName;
@@ -90,14 +91,14 @@ public class MongoNamePoolDao implements NamePoolDao{
     @Override
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
 		WardMember completer = names.stream().findAny().get().getCompleter();
-		Map<String, NameSubmission> submittedNames = submissionsCollection
-			.find(Filters.in("_id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())))
+		Map<String, List<NameSubmission>> submittedNames = submissionsCollection
+			.find(Filters.and(
+				Filters.in("_id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())),
+				Filters.in("remainingOrdinances", names.stream().map(CompletedTempleOrdinances::getOrdinances).flatMap(Set::stream).map(Ordinance::name).collect(Collectors.toList()))
+			))
 			.into(new ArrayList<>())
 			.stream()
-			.collect(Collectors.toMap(
-				NameSubmission::getFamilySearchId,
-				Function.identity()
-			));
+			.collect(Collectors.groupingBy(NameSubmission::getFamilySearchId));
 		Map<String, CheckedOutName> checkedOutNames = workerCollection
 			.find(Filters.and(
 				Filters.eq("requester.name", completer.getName()),
@@ -111,18 +112,22 @@ public class MongoNamePoolDao implements NamePoolDao{
 			));
 		names.forEach(name ->
 		{
-			NameSubmission nameSubmission = submittedNames.get(name.getFamilySearchId());
+			NameSubmission nameSubmission = submittedNames.get(name.getFamilySearchId()).stream().filter(submission -> submission.getRemainingOrdinances().containsAll(name.getOrdinances())).findFirst().get();
+			Set<Ordinance> remainingOrdinances = nameSubmission.getRemainingOrdinances();
 			CheckedOutName checkedOutName = checkedOutNames.get(name.getFamilySearchId());
 			nameSubmission.setCheckedOut(false);
 			checkedOutName.setCompleted(true);
 			nameSubmission.setRemainingOrdinances(nameSubmission.getRemainingOrdinances().stream().filter(ord -> !name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
 			checkedOutName.getName().setOrdinances(checkedOutName.getName().getOrdinances().stream().filter(ord -> name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
+			submissionsCollection.replaceOne(Filters.and(
+				Filters.eq("_id", name.getFamilySearchId()),
+				Filters.in("remainingOrdinances", remainingOrdinances.stream().map(Ordinance::name).collect(Collectors.toList()))
+			), nameSubmission);
+			workerCollection.replaceOne(Filters.and(
+				Filters.eq("requester.name", checkedOutName.getRequester().getName()),
+				Filters.eq("name._id", checkedOutName.getName().getFamilySearchId())
+			), checkedOutName);
 		});
-		submittedNames.values().forEach(name -> submissionsCollection.replaceOne(Filters.eq("_id", name.getFamilySearchId()), name));
-		checkedOutNames.values().forEach(name -> workerCollection.replaceOne(Filters.and(
-			Filters.eq("requester.name", name.getRequester().getName()),
-			Filters.eq("name._id", name.getName().getFamilySearchId())
-		), name));
 	}
 
     @Override
