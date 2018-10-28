@@ -4,11 +4,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import org.bson.codecs.pojo.annotations.BsonId;
 
 public class TempleName {
 
-    @BsonId
     protected String familySearchId;
     protected byte[] pdf;
     protected Set<Ordinance> ordinances;

@@ -81,7 +81,7 @@ public class MongoNamePoolDao implements NamePoolDao{
                 Filters.eq("remainingOrdinances", request.getOrdinance().name())
             )
         ).limit(request.getNumRequested()).into(new ArrayList<>());
-		submissionsCollection.updateMany(Filters.in("_id", matchingSubmissions.stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList())), Updates.set("checkedOut", true));
+		submissionsCollection.updateMany(Filters.in("familySearchId", matchingSubmissions.stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList())), Updates.set("checkedOut", true));
 		workerCollection.insertMany(matchingSubmissions.stream().map(name -> new CheckedOutName(request.getRequester(), false, name, request.getTargetDate())).collect(Collectors.toList()));
         return matchingSubmissions.stream()
             .map(submission -> (TempleName) submission)
@@ -93,7 +93,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 		WardMember completer = names.stream().findAny().get().getCompleter();
 		Map<String, List<NameSubmission>> submittedNames = submissionsCollection
 			.find(Filters.and(
-				Filters.in("_id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())),
+				Filters.in("familySearchId", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())),
 				Filters.in("remainingOrdinances", names.stream().map(CompletedTempleOrdinances::getOrdinances).flatMap(Set::stream).map(Ordinance::name).collect(Collectors.toList()))
 			))
 			.into(new ArrayList<>())
@@ -102,7 +102,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 		Map<String, CheckedOutName> checkedOutNames = workerCollection
 			.find(Filters.and(
 				Filters.eq("requester.name", completer.getName()),
-				Filters.in("name._id", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList()))
+				Filters.in("name.familySearchId", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList()))
 			))
 			.into(new ArrayList<>())
 			.stream()
@@ -120,12 +120,12 @@ public class MongoNamePoolDao implements NamePoolDao{
 			nameSubmission.setRemainingOrdinances(nameSubmission.getRemainingOrdinances().stream().filter(ord -> !name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
 			checkedOutName.getName().setOrdinances(checkedOutName.getName().getOrdinances().stream().filter(ord -> name.getOrdinances().contains(ord)).collect(Collectors.toSet()));
 			submissionsCollection.replaceOne(Filters.and(
-				Filters.eq("_id", name.getFamilySearchId()),
+				Filters.eq("familySearchId", name.getFamilySearchId()),
 				Filters.in("remainingOrdinances", remainingOrdinances.stream().map(Ordinance::name).collect(Collectors.toList()))
 			), nameSubmission);
 			workerCollection.replaceOne(Filters.and(
 				Filters.eq("requester.name", checkedOutName.getRequester().getName()),
-				Filters.eq("name._id", checkedOutName.getName().getFamilySearchId())
+				Filters.eq("name.familySearchId", checkedOutName.getName().getFamilySearchId())
 			), checkedOutName);
 		});
 	}
