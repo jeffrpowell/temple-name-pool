@@ -54,7 +54,7 @@ public class InMemoryNamePoolDao implements NamePoolDao {
         Map<String, NameSubmission> idKeyedNames = names.stream()
 			.peek(name -> wardMemberCache.add(name.getSupplier()))
 			.collect(Collectors.toMap(NameSubmission::getFamilySearchId, name -> name));
-        submittedNames.putAll(idKeyedNames);
+        submittedNames.putAll(idKeyedNames); //BUG: overwrites old submissions if you submit same name with pdf of different ordinances than before
         Map<Ordinance, List<String>> groupedNamesByOrdinance = names.stream()
             .map(TempleNameOrdinanceKey::fullPack)
             .flatMap(List::stream)

@@ -52,7 +52,7 @@ $(document).ready(function () {
 	}
 	
 	$("#reloadCompletedNames").click(function(){
-		refreshPage();
+		loadCheckedOutNames();
 	});
 	
 	$("#markNamesComplete").click(function() {

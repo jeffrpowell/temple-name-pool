@@ -16,7 +16,9 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +134,36 @@ public class MongoNamePoolDao implements NamePoolDao{
 
     @Override
     public Statistics generateStatistics() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<NameSubmission> availableMaleSubmissions = submissionsCollection.find(
+            Filters.and(
+                Filters.eq("checkedOut", false), 
+                Filters.eq("male", true), 
+                Filters.ne("remainingOrdinances", Collections.emptyList())
+            )
+        ).into(new ArrayList<>());
+        List<NameSubmission> availableFemaleSubmissions = submissionsCollection.find(
+            Filters.and(
+                Filters.eq("checkedOut", false), 
+                Filters.eq("male", false), 
+                Filters.ne("remainingOrdinances", Collections.emptyList())
+            )
+        ).into(new ArrayList<>());
+		Map<Ordinance, Integer> numMaleOrdinancesRemaining = availableMaleSubmissions.stream()
+			.map(NameSubmission::getRemainingOrdinances)
+			.flatMap(Set::stream)
+			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
+		Map<Ordinance, Integer> numFemaleOrdinancesRemaining = availableFemaleSubmissions.stream()
+			.map(NameSubmission::getRemainingOrdinances)
+			.flatMap(Set::stream)
+			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
+		Arrays.stream(Ordinance.values()).forEach(ord -> {
+			numMaleOrdinancesRemaining.putIfAbsent(ord, 0);
+			numFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
+		});
+		return new Statistics.Builder()
+			.setNumMaleOrdinancesRemaining(numMaleOrdinancesRemaining)
+			.setNumFemaleOrdinancesRemaining(numFemaleOrdinancesRemaining)
+			.build();
     }
 
     @Override
