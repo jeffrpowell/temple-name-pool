@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -102,18 +103,33 @@ public class NameResource {
     public Response checkoutNames(NameRequest nameRequest) throws IOException {
 		List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
 		java.nio.file.Path zipPath = createTempZipFile(nameRequest.getFileName());
+		StringBuilder onlineNames = new StringBuilder("https://www.familysearch.org/temple/all").append("\n").append(nameRequest.getOrdinance().name());
+		boolean onlineNameEnabled = false;
 		try (FileSystem zipfs = FileSystems.newFileSystem(zipPath, null))
 		{
 			for (TempleName checkedOutName : checkedOutNames)
 			{
 				try
 				{
-					java.nio.file.Path pdfPath = zipfs.getPath(checkedOutName.getFamilySearchId()+".pdf");
-					try (InputStream pdfStream = new ByteArrayInputStream(checkedOutName.getPdf()))
-					{
-						Files.copy(pdfStream, pdfPath, StandardCopyOption.REPLACE_EXISTING);
+					if (checkedOutName.getPdf().length < 50) {
+						onlineNameEnabled = true;
+						onlineNames.append(checkedOutName.getFamilySearchId()).append(" - ").append(checkedOutName.getOrdinances().stream().map(Ordinance::name).collect(Collectors.joining(","))).append("\n");
+					}
+					else {
+						java.nio.file.Path pdfPath = zipfs.getPath(checkedOutName.getFamilySearchId()+".pdf");
+						try (InputStream pdfStream = new ByteArrayInputStream(checkedOutName.getPdf()))
+						{
+							Files.copy(pdfStream, pdfPath, StandardCopyOption.REPLACE_EXISTING);
+						}
 					}
 				} catch (IOException ex) {}
+			}
+			if (onlineNameEnabled) {
+				java.nio.file.Path textPath = zipfs.getPath("onlineNames.txt");
+				try (InputStream onlineNamesStream = new ByteArrayInputStream(onlineNames.toString().getBytes(Charset.forName("UTF-8"))))
+				{
+					Files.copy(onlineNamesStream, textPath, StandardCopyOption.REPLACE_EXISTING);
+				}
 			}
 		}
 		try (InputStream zipStream = new FileInputStream(zipPath.toFile())) {
