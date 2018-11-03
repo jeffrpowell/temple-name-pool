@@ -103,7 +103,7 @@ public class NameResource {
     public Response checkoutNames(NameRequest nameRequest) throws IOException {
 		List<TempleName> checkedOutNames = namePoolDao.checkoutNames(nameRequest);
 		java.nio.file.Path zipPath = createTempZipFile(nameRequest.getFileName());
-		StringBuilder onlineNames = new StringBuilder("https://www.familysearch.org/temple/all").append("\n").append(nameRequest.getOrdinance().name());
+		StringBuilder onlineNames = new StringBuilder("https://www.familysearch.org/temple/all").append("\n").append(nameRequest.getOrdinance().name()).append("\n\n");
 		boolean onlineNameEnabled = false;
 		try (FileSystem zipfs = FileSystems.newFileSystem(zipPath, null))
 		{
