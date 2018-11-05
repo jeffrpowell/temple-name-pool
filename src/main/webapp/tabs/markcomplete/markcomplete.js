@@ -67,14 +67,16 @@ $(document).ready(function () {
 		}).get();
         var formData = new FormData();
         formData.append("wardMember", new Blob([JSON.stringify(getWardMemberObject())], {type: "application/json"}));
-        formData.append("numCompletions", completions.length);
+		var count = 0;
         for (var i = 0; i < completions.length; i++) {
             var completion = completions[i];
 			if (completion.completed){
-				formData.append("familySearchId"+i, completion.familySearchId.replace("FamilySearch Id: ", ""));
-				formData.append("ordinances"+i, new Blob([JSON.stringify(completion.ordinances)], {type: "application/json"}));
+				formData.append("familySearchId"+count, completion.familySearchId.replace("FamilySearch Id: ", ""));
+				formData.append("ordinances"+count, new Blob([JSON.stringify(completion.ordinances)], {type: "application/json"}));
+				count++;
 			}
         }
+        formData.append("numCompletions", count);
 		var request = $.ajax({
 			url: "api/name/complete",
 			method: "POST",
