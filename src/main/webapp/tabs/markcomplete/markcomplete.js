@@ -58,6 +58,7 @@ $(document).ready(function () {
 	$("#markNamesComplete").click(function() {
 		var completions = $('#checkedOutNamesList .checked-out-name').map(function () {
 			return {
+				completed: $(this).find("[name='complete-completed']").prop('checked'),
 				familySearchId: $(this).find("[name='complete-id']").val(),
 				ordinances: $(this).find("[name='complete-ordinances']:checked").map(function () {
 					return $(this).data('enum-value');
@@ -69,8 +70,10 @@ $(document).ready(function () {
         formData.append("numCompletions", completions.length);
         for (var i = 0; i < completions.length; i++) {
             var completion = completions[i];
-            formData.append("familySearchId"+i, completion.familySearchId.replace("FamilySearch Id: ", ""));
-            formData.append("ordinances"+i, new Blob([JSON.stringify(completion.ordinances)], {type: "application/json"}));
+			if (completion.completed){
+				formData.append("familySearchId"+i, completion.familySearchId.replace("FamilySearch Id: ", ""));
+				formData.append("ordinances"+i, new Blob([JSON.stringify(completion.ordinances)], {type: "application/json"}));
+			}
         }
 		var request = $.ajax({
 			url: "api/name/complete",

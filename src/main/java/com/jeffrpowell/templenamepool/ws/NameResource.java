@@ -113,7 +113,7 @@ public class NameResource {
 				{
 					if (checkedOutName.getPdf().length < 50) {
 						onlineNameEnabled = true;
-						onlineNames.append(checkedOutName.getFamilySearchId()).append(" - ").append(checkedOutName.getOrdinances().stream().map(Ordinance::name).collect(Collectors.joining(","))).append("\n");
+						onlineNames.append(checkedOutName.getFamilySearchId()).append("\n");
 					}
 					else {
 						java.nio.file.Path pdfPath = zipfs.getPath(checkedOutName.getFamilySearchId()+".pdf");
