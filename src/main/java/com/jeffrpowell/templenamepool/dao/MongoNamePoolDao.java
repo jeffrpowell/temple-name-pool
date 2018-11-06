@@ -153,19 +153,43 @@ public class MongoNamePoolDao implements NamePoolDao{
 			.map(NameSubmission::getRemainingOrdinances)
 			.flatMap(Set::stream)
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
+		Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining = availableMaleSubmissions.stream()
+			.map(NameSubmission::getRemainingOrdinances)
+			.map(this::filterUnblockedOrdinances)
+			.flatMap(Set::stream)
+			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
 		Map<Ordinance, Integer> numFemaleOrdinancesRemaining = availableFemaleSubmissions.stream()
 			.map(NameSubmission::getRemainingOrdinances)
 			.flatMap(Set::stream)
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
+		Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining = availableFemaleSubmissions.stream()
+			.map(NameSubmission::getRemainingOrdinances)
+			.map(this::filterUnblockedOrdinances)
+			.flatMap(Set::stream)
+			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
 		Arrays.stream(Ordinance.values()).forEach(ord -> {
 			numMaleOrdinancesRemaining.putIfAbsent(ord, 0);
+			numUnblockedMaleOrdinancesRemaining.putIfAbsent(ord, 0);
 			numFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
+			numUnblockedFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
 		});
 		return new Statistics.Builder()
 			.setNumMaleOrdinancesRemaining(numMaleOrdinancesRemaining)
+			.setNumUnblockedMaleOrdinancesRemaining(numUnblockedMaleOrdinancesRemaining)
 			.setNumFemaleOrdinancesRemaining(numFemaleOrdinancesRemaining)
+			.setNumUnblockedFemaleOrdinancesRemaining(numUnblockedFemaleOrdinancesRemaining)
 			.build();
     }
+	
+	private Set<Ordinance> filterUnblockedOrdinances(Set<Ordinance> ordinances) {
+		return ordinances.stream()
+			.filter(o -> !setContainsAny(ordinances, o.getPrerequisiteOrdinances()))
+			.collect(Collectors.toSet());
+	}
+	
+	private <T> boolean setContainsAny(Set<T> set, Set<T> subset) {
+		return set.stream().anyMatch(t -> subset.contains(t));
+	}
 
     @Override
     public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts(boolean includeNotOverdue) {

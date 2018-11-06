@@ -9,15 +9,19 @@ public class Statistics
 	private final int numOrdinancesPerformed;
 	private final Map<Ordinance, Integer> numMaleOrdinancesRemaining;
 	private final Map<Ordinance, Integer> numFemaleOrdinancesRemaining;
+	private final Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining;
+	private final Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining;
 	private final Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions;
 	private final Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted;
 
-	public Statistics(double percentOrdinancesCompleted, int numOrdinancesPerformed, Map<Ordinance, Integer> numMaleOrdinancesRemaining, Map<Ordinance, Integer> numFemaleOrdinancesRemaining, Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions, Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted)
+	public Statistics(double percentOrdinancesCompleted, int numOrdinancesPerformed, Map<Ordinance, Integer> numMaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining, Map<Ordinance, Integer> numFemaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining, Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions, Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted)
 	{
 		this.percentOrdinancesCompleted = percentOrdinancesCompleted;
 		this.numOrdinancesPerformed = numOrdinancesPerformed;
 		this.numMaleOrdinancesRemaining = numMaleOrdinancesRemaining;
 		this.numFemaleOrdinancesRemaining = numFemaleOrdinancesRemaining;
+		this.numUnblockedMaleOrdinancesRemaining = numUnblockedMaleOrdinancesRemaining;
+		this.numUnblockedFemaleOrdinancesRemaining = numUnblockedFemaleOrdinancesRemaining;
 		this.nameSuppliersAndCountOfSubmissions = nameSuppliersAndCountOfSubmissions;
 		this.nameRequestersAndCountOfOrdinancesCompleted = nameRequestersAndCountOfOrdinancesCompleted;
 	}
@@ -42,6 +46,16 @@ public class Statistics
 		return numFemaleOrdinancesRemaining;
 	}
 
+	public Map<Ordinance, Integer> getNumUnblockedMaleOrdinancesRemaining()
+	{
+		return numUnblockedMaleOrdinancesRemaining;
+	}
+
+	public Map<Ordinance, Integer> getNumUnblockedFemaleOrdinancesRemaining()
+	{
+		return numUnblockedFemaleOrdinancesRemaining;
+	}
+
 	public Map<WardMember, Integer> getNameSuppliersAndCountOfSubmissions()
 	{
 		return nameSuppliersAndCountOfSubmissions;
@@ -58,7 +72,9 @@ public class Statistics
 		private double percentOrdinancesCompleted;
 		private int numOrdinancesPerformed;
 		private Map<Ordinance, Integer> numMaleOrdinancesRemaining;
+		private Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining;
 		private Map<Ordinance, Integer> numFemaleOrdinancesRemaining;
+		private Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining;
 		private Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions;
 		private Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted;
 
@@ -80,9 +96,21 @@ public class Statistics
 			return this;
 		}
 
+		public Builder setNumUnblockedMaleOrdinancesRemaining(Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining)
+		{
+			this.numUnblockedMaleOrdinancesRemaining = numUnblockedMaleOrdinancesRemaining;
+			return this;
+		}
+
 		public Builder setNumFemaleOrdinancesRemaining(Map<Ordinance, Integer> numFemaleOrdinancesRemaining)
 		{
 			this.numFemaleOrdinancesRemaining = numFemaleOrdinancesRemaining;
+			return this;
+		}
+
+		public Builder setNumUnblockedFemaleOrdinancesRemaining(Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining)
+		{
+			this.numUnblockedFemaleOrdinancesRemaining = numUnblockedFemaleOrdinancesRemaining;
 			return this;
 		}
 
@@ -100,7 +128,7 @@ public class Statistics
 
 		public Statistics build()
 		{
-			return new Statistics(percentOrdinancesCompleted, numOrdinancesPerformed, numMaleOrdinancesRemaining, numFemaleOrdinancesRemaining, nameSuppliersAndCountOfSubmissions, nameRequestersAndCountOfOrdinancesCompleted);
+			return new Statistics(percentOrdinancesCompleted, numOrdinancesPerformed, numMaleOrdinancesRemaining, numUnblockedMaleOrdinancesRemaining, numFemaleOrdinancesRemaining, numUnblockedFemaleOrdinancesRemaining, nameSuppliersAndCountOfSubmissions, nameRequestersAndCountOfOrdinancesCompleted);
 		}
 	}
 }
