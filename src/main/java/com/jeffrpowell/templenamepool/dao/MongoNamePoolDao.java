@@ -80,7 +80,8 @@ public class MongoNamePoolDao implements NamePoolDao{
             Filters.and(
                 Filters.eq("checkedOut", false), 
                 Filters.eq("male", request.isMaleRequested()), 
-                Filters.eq("remainingOrdinances", request.getOrdinance().name())
+                Filters.eq("remainingOrdinances", request.getOrdinance().name()),
+				Filters.nin("remainingOrdinances", request.getOrdinance().getPrerequisiteOrdinances())
             )
         ).limit(request.getNumRequested()).into(new ArrayList<>());
 		submissionsCollection.updateMany(Filters.in("familySearchId", matchingSubmissions.stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList())), Updates.set("checkedOut", true));
