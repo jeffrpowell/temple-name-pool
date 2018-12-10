@@ -6,7 +6,7 @@ public class Statistics
 {
 
 	private final double percentOrdinancesCompleted;
-	private final int numOrdinancesPerformed;
+	private final Map<Ordinance, Integer> numOrdinancesPerformed;
 	private final Map<Ordinance, Integer> numMaleOrdinancesRemaining;
 	private final Map<Ordinance, Integer> numFemaleOrdinancesRemaining;
 	private final Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining;
@@ -14,7 +14,7 @@ public class Statistics
 	private final Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions;
 	private final Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted;
 
-	public Statistics(double percentOrdinancesCompleted, int numOrdinancesPerformed, Map<Ordinance, Integer> numMaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining, Map<Ordinance, Integer> numFemaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining, Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions, Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted)
+	public Statistics(double percentOrdinancesCompleted, Map<Ordinance, Integer> numOrdinancesPerformed, Map<Ordinance, Integer> numMaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining, Map<Ordinance, Integer> numFemaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining, Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions, Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted)
 	{
 		this.percentOrdinancesCompleted = percentOrdinancesCompleted;
 		this.numOrdinancesPerformed = numOrdinancesPerformed;
@@ -31,7 +31,7 @@ public class Statistics
 		return percentOrdinancesCompleted;
 	}
 
-	public int getNumOrdinancesPerformed()
+	public Map<Ordinance, Integer> getNumOrdinancesPerformed()
 	{
 		return numOrdinancesPerformed;
 	}
@@ -70,7 +70,7 @@ public class Statistics
 	{
 
 		private double percentOrdinancesCompleted;
-		private int numOrdinancesPerformed;
+		private Map<Ordinance, Integer> numOrdinancesPerformed;
 		private Map<Ordinance, Integer> numMaleOrdinancesRemaining;
 		private Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining;
 		private Map<Ordinance, Integer> numFemaleOrdinancesRemaining;
@@ -84,7 +84,7 @@ public class Statistics
 			return this;
 		}
 
-		public Builder setNumOrdinancesPerformed(int numOrdinancesPerformed)
+		public Builder setNumOrdinancesPerformed(Map<Ordinance, Integer> numOrdinancesPerformed)
 		{
 			this.numOrdinancesPerformed = numOrdinancesPerformed;
 			return this;

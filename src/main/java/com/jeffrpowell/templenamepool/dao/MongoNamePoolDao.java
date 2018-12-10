@@ -149,6 +149,7 @@ public class MongoNamePoolDao implements NamePoolDao{
                 Filters.ne("remainingOrdinances", Collections.emptyList())
             )
         ).into(new ArrayList<>());
+		List<CheckedOutName> completedOrdinances = workerCollection.find(Filters.eq("completed", true)).into(new ArrayList<>());
 		Map<Ordinance, Integer> numMaleOrdinancesRemaining = availableMaleSubmissions.stream()
 			.map(NameSubmission::getRemainingOrdinances)
 			.flatMap(Set::stream)
@@ -173,7 +174,11 @@ public class MongoNamePoolDao implements NamePoolDao{
 			numFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
 			numUnblockedFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
 		});
+		Map<WardMember, Integer> completedOrdinancesByMember = completedOrdinances.stream().collect(Collectors.groupingBy(CheckedOutName::getRequester, Collectors.reducing(0, member -> 1, Math::addExact)));
+		Map<Ordinance, Integer> completedOrdinancesByOrdinance = completedOrdinances.stream().map(CheckedOutName::getName).flatMap(name -> name.getOrdinances().stream()).collect(Collectors.groupingBy(o -> o, Collectors.reducing(0, ord -> 1, Math::addExact)));
 		return new Statistics.Builder()
+			.setNameRequestersAndCountOfOrdinancesCompleted(completedOrdinancesByMember)
+			.setNumOrdinancesPerformed(completedOrdinancesByOrdinance)
 			.setNumMaleOrdinancesRemaining(numMaleOrdinancesRemaining)
 			.setNumUnblockedMaleOrdinancesRemaining(numUnblockedMaleOrdinancesRemaining)
 			.setNumFemaleOrdinancesRemaining(numFemaleOrdinancesRemaining)

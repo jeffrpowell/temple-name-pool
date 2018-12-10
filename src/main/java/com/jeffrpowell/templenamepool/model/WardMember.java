@@ -90,5 +90,9 @@ public class WardMember {
         return Objects.equals(this.phone, other.phone);
     }
 
+	@Override
+	public String toString() {
+		return name;
+	}
     
 }
