@@ -176,6 +176,7 @@ public class MongoNamePoolDao implements NamePoolDao{
 		});
 		Map<WardMember, Integer> completedOrdinancesByMember = completedOrdinances.stream().collect(Collectors.groupingBy(CheckedOutName::getRequester, Collectors.reducing(0, member -> 1, Math::addExact)));
 		Map<Ordinance, Integer> completedOrdinancesByOrdinance = completedOrdinances.stream().map(CheckedOutName::getName).flatMap(name -> name.getOrdinances().stream()).collect(Collectors.groupingBy(o -> o, Collectors.reducing(0, ord -> 1, Math::addExact)));
+		Arrays.stream(Ordinance.values()).forEach(ordinance -> completedOrdinancesByOrdinance.computeIfAbsent(ordinance, o -> 0));
 		return new Statistics.Builder()
 			.setNameRequestersAndCountOfOrdinancesCompleted(completedOrdinancesByMember)
 			.setNumOrdinancesPerformed(completedOrdinancesByOrdinance)

@@ -4,7 +4,13 @@ $(document).ready(function () {
 		/*
 			{
 				"percentOrdinancesCompleted" : 0.0,
-				"numOrdinancesPerformed" : 0,
+				"numOrdinancesPerformed" : {
+					"ENDOWMENT" : 26,
+					"SEALING_PARENTS" : 0,
+					"INITIATORY" : 15,
+					"BAPTISM_CONFIRMATION" : 41,
+					"SEALING_SPOUSE" : 0
+				},
 				"numMaleOrdinancesRemaining" : {
 				  "INITIATORY" : 18,
 				  "ENDOWMENT" : 31,
@@ -34,10 +40,20 @@ $(document).ready(function () {
 				  "SEALING_PARENTS" : 24
 				},
 				"nameSuppliersAndCountOfSubmissions" : null,
-				"nameRequestersAndCountOfOrdinancesCompleted" : null
+				"nameRequestersAndCountOfOrdinancesCompleted" : {
+					"Glenna Parkinson" : 1,
+					"Wayne Millward" : 1,
+					"Tyson Harlin" : 17,
+					"Lissa Hall" : 27,
+					"Rick Bassett" : 15,
+					"David Walker" : 6,
+					"Brenda Arnold" : 7
+				}
 			}
 		 */
 		buildPoolContentsChart(response.numMaleOrdinancesRemaining, response.numUnblockedMaleOrdinancesRemaining, response.numFemaleOrdinancesRemaining, response.numUnblockedFemaleOrdinancesRemaining);
+		buildCompletedOrdinancesChart(response.numOrdinancesPerformed);
+		buildOrdinancesByRequesterTable(response.nameRequestersAndCountOfOrdinancesCompleted);
 	});
 	
 	function buildPoolContentsChart(totalMale, unblockedMale, totalFemale, unblockedFemale) {
@@ -46,7 +62,7 @@ $(document).ready(function () {
 		var unblockedFemales = ords.map(o => unblockedFemale[o]);
 		var blockedMales = ords.map(o => totalMale[o] - unblockedMale[o]);
 		var blockedFemales = ords.map(o => totalFemale[o] - unblockedFemale[o]);
-		new Chart($("#poolContents"), {
+		new Chart($("#statsPoolContents"), {
 			type: 'bar',
 			data: {
 				labels: ["B/C", "Initiatory", "Endowment", "Sealing to Parents", "Sealing to Spouse"],
@@ -93,6 +109,37 @@ $(document).ready(function () {
 						}]
 				}
 			}
+		});
+	}
+	function buildCompletedOrdinancesChart(completedOrdinancesRaw) {
+		var ords = ["BAPTISM_CONFIRMATION", "INITIATORY", "ENDOWMENT", "SEALING_PARENTS", "SEALING_SPOUSE"];
+		var completedOrdinances = ords.map(o => completedOrdinancesRaw[o]);
+		new Chart($("#statsOrdinancesCompleted"), {
+			type: 'bar',
+			data: {
+				labels: ["B/C", "Initiatory", "Endowment", "Sealing to Parents", "Sealing to Spouse"],
+				datasets: [{
+						label: 'Completed',
+						data: completedOrdinances,
+						backgroundColor: 'rgba(255, 99, 132, 0.2)',
+						borderColor: 'rgba(255,99,132,1)',
+						borderWidth: 1
+					}]
+			},
+			options: {
+				scales: {
+					yAxes: [{
+							ticks: {
+								beginAtZero: true
+							}
+						}]
+				}
+			}
+		});
+	}
+	function buildOrdinancesByRequesterTable(ordinancesByRequester) {
+		$.each(ordinancesByRequester, function(name, count) {
+			$("#statsOrdinancesByRequester").append("<tr><td>"+name+"</td><td>"+count+"</td><tr>");
 		});
 	}
 });
