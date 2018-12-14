@@ -92,15 +92,15 @@ $(document).ready(function () {
 						label: 'Male checked out',
 						stack: "male",
 						data: checkedOutMales,
-						backgroundColor: 'rgba(54, 162, 235, 0.2)',
-						borderColor: 'rgba(153,128,121, 1)',
+						backgroundColor: 'rgba(25, 74, 107, 0.2)',
+						borderColor: 'rgba(25, 74, 107, 0.3)',
 						borderWidth: 1
 					},{
 						label: 'Male blocked',
 						stack: "male",
 						data: blockedMales,
-						backgroundColor: 'rgba(54, 162, 235, 0.1)',
-						borderColor: 'rgba(54, 162, 235, 0.1)',
+						backgroundColor: 'rgba(126, 193, 238, 0.2)',
+						borderColor: 'rgba(126, 193, 238, 0.3)',
 						borderWidth: 1
 					},{
 						label: 'Female unblocked',
@@ -113,15 +113,15 @@ $(document).ready(function () {
 						label: 'Female checked out',
 						stack: "female",
 						data: checkedOutFemales,
-						backgroundColor: 'rgba(255, 99, 132, 0.2)',
-						borderColor: 'rgba(153,128,121,1)',
+						backgroundColor: 'rgba(127, 49, 66, 0.2)',
+						borderColor: 'rgba(127, 49, 66,0.3)',
 						borderWidth: 1
 					},{
 						label: 'Female blocked',
 						stack: "female",
 						data: blockedFemales,
-						backgroundColor: 'rgba(255, 99, 132, 0.1)',
-						borderColor: 'rgba(255,99,132,0.1)',
+						backgroundColor: 'rgba(255, 175, 192, 0.2)',
+						borderColor: 'rgba(255,99,132,0.3)',
 						borderWidth: 1
 					}]
 			},
@@ -150,8 +150,8 @@ $(document).ready(function () {
 				datasets: [{
 						label: 'Completed',
 						data: completedOrdinances,
-						backgroundColor: 'rgba(255, 99, 132, 0.2)',
-						borderColor: 'rgba(255,99,132,1)',
+						backgroundColor: 'rgba(34, 178, 57, 0.2)',
+						borderColor: 'rgba(34, 178, 57,1)', //34 178 57; 99 255 124; 44 246 219
 						borderWidth: 1
 					}]
 			},
