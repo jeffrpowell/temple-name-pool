@@ -3,7 +3,6 @@ $(document).ready(function () {
 	$.get("api/stats", function(response) {
 		/*
 			{
-				"percentOrdinancesCompleted" : 0.0,
 				"numOrdinancesPerformed" : {
 					"ENDOWMENT" : 26,
 					"SEALING_PARENTS" : 0,
@@ -39,6 +38,20 @@ $(document).ready(function () {
 				  "BAPTISM_CONFIRMATION" : 25,
 				  "SEALING_PARENTS" : 24
 				},
+				"numCheckedOutMaleOrdinances" : {
+					"ENDOWMENT" : 26,
+					"SEALING_PARENTS" : 0,
+					"INITIATORY" : 15,
+					"BAPTISM_CONFIRMATION" : 41,
+					"SEALING_SPOUSE" : 0
+				},
+				"numCheckedOutFemaleOrdinances" : {
+				  "INITIATORY" : 18,
+				  "ENDOWMENT" : 31,
+				  "SEALING_SPOUSE" : 48,
+				  "BAPTISM_CONFIRMATION" : 14,
+				  "SEALING_PARENTS" : 14
+				},
 				"nameSuppliersAndCountOfSubmissions" : null,
 				"nameRequestersAndCountOfOrdinancesCompleted" : {
 					"Glenna Parkinson" : 1,
@@ -51,17 +64,19 @@ $(document).ready(function () {
 				}
 			}
 		 */
-		buildPoolContentsChart(response.numMaleOrdinancesRemaining, response.numUnblockedMaleOrdinancesRemaining, response.numFemaleOrdinancesRemaining, response.numUnblockedFemaleOrdinancesRemaining);
+		buildPoolContentsChart(response.numMaleOrdinancesRemaining, response.numUnblockedMaleOrdinancesRemaining, response.numFemaleOrdinancesRemaining, response.numUnblockedFemaleOrdinancesRemaining, response.numCheckedOutMaleOrdinances, response.numCheckedOutFemaleOrdinances);
 		buildCompletedOrdinancesChart(response.numOrdinancesPerformed);
 		buildOrdinancesByRequesterTable(response.nameRequestersAndCountOfOrdinancesCompleted);
 	});
 	
-	function buildPoolContentsChart(totalMale, unblockedMale, totalFemale, unblockedFemale) {
+	function buildPoolContentsChart(totalMale, unblockedMale, totalFemale, unblockedFemale, checkedOutMale, checkedOutFemale) {
 		var ords = ["BAPTISM_CONFIRMATION", "INITIATORY", "ENDOWMENT", "SEALING_PARENTS", "SEALING_SPOUSE"];
 		var unblockedMales = ords.map(o => unblockedMale[o]);
 		var unblockedFemales = ords.map(o => unblockedFemale[o]);
 		var blockedMales = ords.map(o => totalMale[o] - unblockedMale[o]);
 		var blockedFemales = ords.map(o => totalFemale[o] - unblockedFemale[o]);
+		var checkedOutMales = ords.map(o => checkedOutMale[o]);
+		var checkedOutFemales = ords.map(o => checkedOutFemale[o]);
 		new Chart($("#statsPoolContents"), {
 			type: 'bar',
 			data: {
@@ -70,8 +85,15 @@ $(document).ready(function () {
 						label: 'Male unblocked',
 						stack: "male",
 						data: unblockedMales,
-						backgroundColor: 'rgba(54, 162, 235, 0.2)',
+						backgroundColor: 'rgba(54, 162, 235, 0.3)',
 						borderColor: 'rgba(54, 162, 235, 1)',
+						borderWidth: 1
+					},{
+						label: 'Male checked out',
+						stack: "male",
+						data: checkedOutMales,
+						backgroundColor: 'rgba(54, 162, 235, 0.2)',
+						borderColor: 'rgba(153,128,121, 1)',
 						borderWidth: 1
 					},{
 						label: 'Male blocked',
@@ -84,8 +106,15 @@ $(document).ready(function () {
 						label: 'Female unblocked',
 						stack: "female",
 						data: unblockedFemales,
-						backgroundColor: 'rgba(255, 99, 132, 0.2)',
+						backgroundColor: 'rgba(255, 99, 132, 0.3)',
 						borderColor: 'rgba(255,99,132,1)',
+						borderWidth: 1
+					},{
+						label: 'Female checked out',
+						stack: "female",
+						data: checkedOutFemales,
+						backgroundColor: 'rgba(255, 99, 132, 0.2)',
+						borderColor: 'rgba(153,128,121,1)',
 						borderWidth: 1
 					},{
 						label: 'Female blocked',

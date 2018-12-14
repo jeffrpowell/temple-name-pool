@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.jvnet.hk2.annotations.Service;
 
@@ -150,8 +151,16 @@ public class MongoNamePoolDao implements NamePoolDao{
             )
         ).into(new ArrayList<>());
 		List<CheckedOutName> completedOrdinances = workerCollection.find(Filters.eq("completed", true)).into(new ArrayList<>());
-		Map<Ordinance, Integer> numMaleOrdinancesRemaining = availableMaleSubmissions.stream()
-			.map(NameSubmission::getRemainingOrdinances)
+		List<CheckedOutName> checkedOutOrdinances = workerCollection.find(Filters.eq("completed", false)).into(new ArrayList<>());
+		Map<Ordinance, Integer> numMaleOrdinancesRemaining = Stream.concat(
+				availableMaleSubmissions.stream()
+					.map(NameSubmission::getRemainingOrdinances),
+				checkedOutOrdinances.stream()
+					.map(CheckedOutName::getName)
+					.filter(TempleName::isMale)
+					.map(TempleName::getOrdinances)
+					.map(this::filterBlockedOrdinances)
+			)
 			.flatMap(Set::stream)
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
 		Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining = availableMaleSubmissions.stream()
@@ -159,8 +168,15 @@ public class MongoNamePoolDao implements NamePoolDao{
 			.map(this::filterUnblockedOrdinances)
 			.flatMap(Set::stream)
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
-		Map<Ordinance, Integer> numFemaleOrdinancesRemaining = availableFemaleSubmissions.stream()
-			.map(NameSubmission::getRemainingOrdinances)
+		Map<Ordinance, Integer> numFemaleOrdinancesRemaining = Stream.concat(
+				availableFemaleSubmissions.stream()
+					.map(NameSubmission::getRemainingOrdinances),
+				checkedOutOrdinances.stream()
+					.map(CheckedOutName::getName)
+					.filter(n -> !n.isMale())
+					.map(TempleName::getOrdinances)
+					.map(this::filterBlockedOrdinances)
+			)
 			.flatMap(Set::stream)
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.reducing(0, ord -> 1, Math::addExact)));
 		Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining = availableFemaleSubmissions.stream()
@@ -174,18 +190,52 @@ public class MongoNamePoolDao implements NamePoolDao{
 			numFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
 			numUnblockedFemaleOrdinancesRemaining.putIfAbsent(ord, 0);
 		});
-		Map<WardMember, Integer> completedOrdinancesByMember = completedOrdinances.stream().collect(Collectors.groupingBy(CheckedOutName::getRequester, Collectors.reducing(0, member -> 1, Math::addExact)));
-		Map<Ordinance, Integer> completedOrdinancesByOrdinance = completedOrdinances.stream().map(CheckedOutName::getName).flatMap(name -> name.getOrdinances().stream()).collect(Collectors.groupingBy(o -> o, Collectors.reducing(0, ord -> 1, Math::addExact)));
+		Map<WardMember, Integer> completedOrdinancesByMember = completedOrdinances.stream().collect(Collectors.groupingBy(CheckedOutName::getRequester, Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
+		Map<Ordinance, Integer> completedOrdinancesByOrdinance = completedOrdinances.stream()
+			.map(CheckedOutName::getName)
+			.flatMap(name -> name.getOrdinances().stream())
+			.collect(Collectors.groupingBy(
+				o -> o, 
+				Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+			));
+		Map<Ordinance, Integer> numCheckedOutMaleOrdinances = checkedOutOrdinances.stream()
+			.map(CheckedOutName::getName)
+			.filter(TempleName::isMale)
+			.map(TempleName::getOrdinances)
+			.map(this::filterUnblockedOrdinances)
+			.flatMap(Set::stream)
+			.collect(Collectors.groupingBy(
+				o -> o, 
+				Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+			));
+		Map<Ordinance, Integer> numCheckedOutFemaleOrdinances = checkedOutOrdinances.stream()
+			.map(CheckedOutName::getName)
+			.filter(n -> !n.isMale())
+			.map(TempleName::getOrdinances)
+			.map(this::filterUnblockedOrdinances)
+			.flatMap(Set::stream)
+			.collect(Collectors.groupingBy(
+				o -> o, 
+				Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+			));
 		Arrays.stream(Ordinance.values()).forEach(ordinance -> completedOrdinancesByOrdinance.computeIfAbsent(ordinance, o -> 0));
 		return new Statistics.Builder()
 			.setNameRequestersAndCountOfOrdinancesCompleted(completedOrdinancesByMember)
 			.setNumOrdinancesPerformed(completedOrdinancesByOrdinance)
 			.setNumMaleOrdinancesRemaining(numMaleOrdinancesRemaining)
 			.setNumUnblockedMaleOrdinancesRemaining(numUnblockedMaleOrdinancesRemaining)
+			.setNumCheckedOutMaleOrdinances(numCheckedOutMaleOrdinances)
 			.setNumFemaleOrdinancesRemaining(numFemaleOrdinancesRemaining)
 			.setNumUnblockedFemaleOrdinancesRemaining(numUnblockedFemaleOrdinancesRemaining)
+			.setNumCheckedOutFemaleOrdinances(numCheckedOutFemaleOrdinances)
 			.build();
     }
+	
+	private Set<Ordinance> filterBlockedOrdinances(Set<Ordinance> ordinances) {
+		return ordinances.stream()
+			.filter(o -> setContainsAny(ordinances, o.getPrerequisiteOrdinances()))
+			.collect(Collectors.toSet());
+	}
 	
 	private Set<Ordinance> filterUnblockedOrdinances(Set<Ordinance> ordinances) {
 		return ordinances.stream()

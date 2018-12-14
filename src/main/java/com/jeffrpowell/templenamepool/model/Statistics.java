@@ -5,30 +5,27 @@ import java.util.Map;
 public class Statistics
 {
 
-	private final double percentOrdinancesCompleted;
 	private final Map<Ordinance, Integer> numOrdinancesPerformed;
 	private final Map<Ordinance, Integer> numMaleOrdinancesRemaining;
 	private final Map<Ordinance, Integer> numFemaleOrdinancesRemaining;
 	private final Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining;
 	private final Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining;
+	private final Map<Ordinance, Integer> numCheckedOutMaleOrdinances;
+	private final Map<Ordinance, Integer> numCheckedOutFemaleOrdinances;
 	private final Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions;
 	private final Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted;
 
-	public Statistics(double percentOrdinancesCompleted, Map<Ordinance, Integer> numOrdinancesPerformed, Map<Ordinance, Integer> numMaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining, Map<Ordinance, Integer> numFemaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining, Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions, Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted)
+	public Statistics(Map<Ordinance, Integer> numOrdinancesPerformed, Map<Ordinance, Integer> numMaleOrdinancesRemaining, Map<Ordinance, Integer> numFemaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining, Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining, Map<Ordinance, Integer> numCheckedOutMaleOrdinances, Map<Ordinance, Integer> numCheckedOutFemaleOrdinances, Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions, Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted)
 	{
-		this.percentOrdinancesCompleted = percentOrdinancesCompleted;
 		this.numOrdinancesPerformed = numOrdinancesPerformed;
 		this.numMaleOrdinancesRemaining = numMaleOrdinancesRemaining;
 		this.numFemaleOrdinancesRemaining = numFemaleOrdinancesRemaining;
 		this.numUnblockedMaleOrdinancesRemaining = numUnblockedMaleOrdinancesRemaining;
 		this.numUnblockedFemaleOrdinancesRemaining = numUnblockedFemaleOrdinancesRemaining;
+		this.numCheckedOutMaleOrdinances = numCheckedOutMaleOrdinances;
+		this.numCheckedOutFemaleOrdinances = numCheckedOutFemaleOrdinances;
 		this.nameSuppliersAndCountOfSubmissions = nameSuppliersAndCountOfSubmissions;
 		this.nameRequestersAndCountOfOrdinancesCompleted = nameRequestersAndCountOfOrdinancesCompleted;
-	}
-
-	public double getPercentOrdinancesCompleted()
-	{
-		return percentOrdinancesCompleted;
 	}
 
 	public Map<Ordinance, Integer> getNumOrdinancesPerformed()
@@ -56,6 +53,16 @@ public class Statistics
 		return numUnblockedFemaleOrdinancesRemaining;
 	}
 
+	public Map<Ordinance, Integer> getNumCheckedOutMaleOrdinances()
+	{
+		return numCheckedOutMaleOrdinances;
+	}
+
+	public Map<Ordinance, Integer> getNumCheckedOutFemaleOrdinances()
+	{
+		return numCheckedOutFemaleOrdinances;
+	}
+
 	public Map<WardMember, Integer> getNameSuppliersAndCountOfSubmissions()
 	{
 		return nameSuppliersAndCountOfSubmissions;
@@ -69,20 +76,15 @@ public class Statistics
 	public static class Builder
 	{
 
-		private double percentOrdinancesCompleted;
 		private Map<Ordinance, Integer> numOrdinancesPerformed;
 		private Map<Ordinance, Integer> numMaleOrdinancesRemaining;
 		private Map<Ordinance, Integer> numUnblockedMaleOrdinancesRemaining;
+		private Map<Ordinance, Integer> numCheckedOutMaleOrdinances;
 		private Map<Ordinance, Integer> numFemaleOrdinancesRemaining;
 		private Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining;
+		private Map<Ordinance, Integer> numCheckedOutFemaleOrdinances;
 		private Map<WardMember, Integer> nameSuppliersAndCountOfSubmissions;
 		private Map<WardMember, Integer> nameRequestersAndCountOfOrdinancesCompleted;
-
-		public Builder setPercentOrdinancesCompleted(double percentOrdinancesCompleted)
-		{
-			this.percentOrdinancesCompleted = percentOrdinancesCompleted;
-			return this;
-		}
 
 		public Builder setNumOrdinancesPerformed(Map<Ordinance, Integer> numOrdinancesPerformed)
 		{
@@ -102,6 +104,12 @@ public class Statistics
 			return this;
 		}
 
+		public Builder setNumCheckedOutMaleOrdinances(Map<Ordinance, Integer> numCheckedOutMaleOrdinances)
+		{
+			this.numCheckedOutMaleOrdinances = numCheckedOutMaleOrdinances;
+			return this;
+		}
+
 		public Builder setNumFemaleOrdinancesRemaining(Map<Ordinance, Integer> numFemaleOrdinancesRemaining)
 		{
 			this.numFemaleOrdinancesRemaining = numFemaleOrdinancesRemaining;
@@ -111,6 +119,12 @@ public class Statistics
 		public Builder setNumUnblockedFemaleOrdinancesRemaining(Map<Ordinance, Integer> numUnblockedFemaleOrdinancesRemaining)
 		{
 			this.numUnblockedFemaleOrdinancesRemaining = numUnblockedFemaleOrdinancesRemaining;
+			return this;
+		}
+
+		public Builder setNumCheckedOutFemaleOrdinances(Map<Ordinance, Integer> numCheckedOutFemaleOrdinances)
+		{
+			this.numCheckedOutFemaleOrdinances = numCheckedOutFemaleOrdinances;
 			return this;
 		}
 
@@ -128,7 +142,7 @@ public class Statistics
 
 		public Statistics build()
 		{
-			return new Statistics(percentOrdinancesCompleted, numOrdinancesPerformed, numMaleOrdinancesRemaining, numUnblockedMaleOrdinancesRemaining, numFemaleOrdinancesRemaining, numUnblockedFemaleOrdinancesRemaining, nameSuppliersAndCountOfSubmissions, nameRequestersAndCountOfOrdinancesCompleted);
+			return new Statistics(numOrdinancesPerformed, numMaleOrdinancesRemaining, numFemaleOrdinancesRemaining, numUnblockedMaleOrdinancesRemaining, numUnblockedFemaleOrdinancesRemaining, numCheckedOutMaleOrdinances, numCheckedOutFemaleOrdinances, nameSuppliersAndCountOfSubmissions, nameRequestersAndCountOfOrdinancesCompleted);
 		}
 	}
 }
