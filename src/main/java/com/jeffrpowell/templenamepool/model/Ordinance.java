@@ -10,9 +10,9 @@ public enum Ordinance {
 		Set<Ordinance> prereqs = EnumSet.noneOf(Ordinance.class);
 		switch (this) {
 			case BAPTISM_CONFIRMATION:
-			case SEALING_PARENTS:
 				break;
 			case SEALING_SPOUSE:
+			case SEALING_PARENTS:
 				prereqs.add(ENDOWMENT); //spilling on purpose
 			case ENDOWMENT:
 				prereqs.add(INITIATORY); //spilling on purpose
