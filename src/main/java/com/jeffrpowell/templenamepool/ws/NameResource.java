@@ -152,14 +152,25 @@ public class NameResource {
 		Integer numCompletions = extractMultiPartField(multiPart, objectMapper, "numCompletions", Integer.class);
 		WardMember wardMember = extractMultiPartField(multiPart, objectMapper, "wardMember", WardMember.class);
 		List<CompletedTempleOrdinances> completions = new ArrayList<>();
+		List<CompletedTempleOrdinances> toReturn = new ArrayList<>();
 		for (int i = 0; i < numCompletions; i++)
 		{
 			String familySearchId = extractMultiPartField(multiPart, objectMapper, "familySearchId"+i, String.class);
 			List<Object> ordinanceStringList = extractMultiPartField(multiPart, objectMapper, "ordinances"+i, List.class);
 			Set<Ordinance> ordinances = ordinanceStringList.stream().map(obj -> (String)obj).map(Ordinance::valueOf).collect(Collectors.toCollection(() -> EnumSet.noneOf(Ordinance.class)));
-			completions.add(new CompletedTempleOrdinances(familySearchId, wardMember, ordinances, false));
+			if (ordinances.isEmpty()) {
+				toReturn.add(new CompletedTempleOrdinances(familySearchId, wardMember, ordinances, false));
+			}
+			else {
+				completions.add(new CompletedTempleOrdinances(familySearchId, wardMember, ordinances, false));
+			}
 		}
-		namePoolDao.markNamesAsCompleted(completions);
+		if (!toReturn.isEmpty()) {
+			namePoolDao.returnNames(toReturn);
+		}
+		if (!completions.isEmpty()) {
+			namePoolDao.markNamesAsCompleted(completions);
+		}
         return Response.ok().build();
     }
 }

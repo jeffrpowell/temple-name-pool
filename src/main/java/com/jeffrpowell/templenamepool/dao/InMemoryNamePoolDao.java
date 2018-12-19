@@ -78,6 +78,11 @@ public class InMemoryNamePoolDao implements NamePoolDao {
     }
 
     @Override
+    public void returnNames(Collection<CompletedTempleOrdinances> names) {
+		throw new UnsupportedOperationException();
+	}
+	
+    @Override
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
         completedOrdinances.addAll(names.stream()
 			.peek(ordinance -> wardMemberCache.add(ordinance.getCompleter()))

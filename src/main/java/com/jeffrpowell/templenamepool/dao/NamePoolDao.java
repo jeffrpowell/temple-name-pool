@@ -17,6 +17,7 @@ import org.jvnet.hk2.annotations.Contract;
 public interface NamePoolDao {
     public void addNames(Collection<NameSubmission> names);
     public List<TempleName> checkoutNames(NameRequest request);
+    public void returnNames(Collection<CompletedTempleOrdinances> names);
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names);
     public Statistics generateStatistics();
     public Map<WardMember, List<OverdueName>> getOverdueNameCheckouts(boolean includeNotOverdue);

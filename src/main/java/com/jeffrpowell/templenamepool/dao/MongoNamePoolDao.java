@@ -92,6 +92,50 @@ public class MongoNamePoolDao implements NamePoolDao{
             .collect(Collectors.toList());
     }
 	
+	@Override
+	public void returnNames(Collection<CompletedTempleOrdinances> names) {
+		WardMember completer = names.stream().findAny().get().getCompleter();
+		Map<String, List<NameSubmission>> submittedNames = submissionsCollection
+			.find(Filters.and(
+				Filters.in("familySearchId", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())),
+				Filters.eq("checkedOut", true)
+			))
+			.into(new ArrayList<>())
+			.stream()
+			.collect(Collectors.groupingBy(NameSubmission::getFamilySearchId));
+		Map<String, CheckedOutName> checkedOutNames = workerCollection
+			.find(Filters.and(
+				Filters.eq("requester.name", completer.getName()),
+				Filters.in("name.familySearchId", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())),
+				Filters.eq("completed", false)
+			))
+			.into(new ArrayList<>())
+			.stream()
+			.collect(Collectors.toMap(
+				name -> name.getName().getFamilySearchId(),
+				Function.identity()
+			));
+		names.forEach(name ->
+		{
+			List<NameSubmission> nameSubmissions = submittedNames.get(name.getFamilySearchId());
+			CheckedOutName checkedOutName = checkedOutNames.get(name.getFamilySearchId());
+			for (NameSubmission nameSubmission : nameSubmissions)
+			{
+				nameSubmission.setCheckedOut(false);
+				Set<Ordinance> remainingOrdinances = nameSubmission.getRemainingOrdinances();
+				submissionsCollection.replaceOne(Filters.and(
+					Filters.eq("familySearchId", name.getFamilySearchId()),
+					Filters.in("remainingOrdinances", remainingOrdinances.stream().map(Ordinance::name).collect(Collectors.toList()))
+				), nameSubmission);
+			}
+			workerCollection.deleteOne(Filters.and(
+				Filters.eq("requester.name", checkedOutName.getRequester().getName()),
+				Filters.eq("name.familySearchId", checkedOutName.getName().getFamilySearchId()),
+				Filters.eq("completed", false)
+			));
+		});
+	}
+	
     @Override
     public void markNamesAsCompleted(Collection<CompletedTempleOrdinances> names) {
 		WardMember completer = names.stream().findAny().get().getCompleter();
@@ -106,7 +150,8 @@ public class MongoNamePoolDao implements NamePoolDao{
 		Map<String, CheckedOutName> checkedOutNames = workerCollection
 			.find(Filters.and(
 				Filters.eq("requester.name", completer.getName()),
-				Filters.in("name.familySearchId", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList()))
+				Filters.in("name.familySearchId", names.stream().map(CompletedTempleOrdinances::getFamilySearchId).collect(Collectors.toList())),
+				Filters.eq("completed", false)
 			))
 			.into(new ArrayList<>())
 			.stream()
@@ -129,7 +174,8 @@ public class MongoNamePoolDao implements NamePoolDao{
 			), nameSubmission);
 			workerCollection.replaceOne(Filters.and(
 				Filters.eq("requester.name", checkedOutName.getRequester().getName()),
-				Filters.eq("name.familySearchId", checkedOutName.getName().getFamilySearchId())
+				Filters.eq("name.familySearchId", checkedOutName.getName().getFamilySearchId()),
+				Filters.eq("completed", false)
 			), checkedOutName);
 		});
 	}
