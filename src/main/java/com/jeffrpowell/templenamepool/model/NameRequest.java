@@ -2,6 +2,7 @@ package com.jeffrpowell.templenamepool.model;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 public class NameRequest {
 	private WardMember requester;
@@ -44,7 +45,7 @@ public class NameRequest {
     
 	public LocalDate getTargetDate()
 	{
-		return targetDate;
+		return Optional.ofNullable(targetDate).orElse(LocalDate.now());
 	}
 
 	public void setRequester(WardMember requester)
