@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -84,13 +85,34 @@ public class MongoNamePoolDao implements NamePoolDao{
                 Filters.eq("remainingOrdinances", request.getOrdinance().name()),
 				Filters.nin("remainingOrdinances", request.getOrdinance().getPrerequisiteOrdinances().stream().map(Ordinance::name).collect(Collectors.toList()))
             )
-        ).limit(request.getNumRequested()).into(new ArrayList<>());
-		submissionsCollection.updateMany(Filters.in("familySearchId", matchingSubmissions.stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList())), Updates.set("checkedOut", true));
-		workerCollection.insertMany(matchingSubmissions.stream().map(name -> new CheckedOutName(request.getRequester(), false, name, request.getTargetDate())).collect(Collectors.toList()));
-        return matchingSubmissions.stream()
+        ).into(new ArrayList<>());
+		List<NameSubmission> checkedOutNames = selectNamesToCheckout(matchingSubmissions, request.getNumRequested());
+		submissionsCollection.updateMany(Filters.in("familySearchId", checkedOutNames.stream().map(NameSubmission::getFamilySearchId).collect(Collectors.toList())), Updates.set("checkedOut", true));
+		workerCollection.insertMany(checkedOutNames.stream().map(name -> new CheckedOutName(request.getRequester(), false, name, request.getTargetDate())).collect(Collectors.toList()));
+        return checkedOutNames.stream()
             .map(submission -> (TempleName) submission)
             .collect(Collectors.toList());
     }
+	
+	private List<NameSubmission> selectNamesToCheckout(Collection<NameSubmission> availableNames, int namesRequested) {
+		Map<WardMember, List<NameSubmission>> namesBySubmitter = availableNames.stream()
+			.collect(Collectors.groupingBy(NameSubmission::getSupplier));
+		List<WardMember> submittersInPriorityOrder = namesBySubmitter.keySet().stream().sorted(Comparator.comparing(submitter -> namesBySubmitter.get(submitter).size())).collect(Collectors.toList());
+		int amountToBorrowFromEachSubmitter = namesRequested / submittersInPriorityOrder.size();
+		int amountLeftover = namesRequested % Math.max(amountToBorrowFromEachSubmitter, 1);
+		List<NameSubmission> namesToCheckout = new ArrayList<>();
+		for (WardMember submitter : submittersInPriorityOrder)
+		{
+			List<NameSubmission> availableNamesFromSubmitter = namesBySubmitter.get(submitter);
+			if (availableNamesFromSubmitter.size() <= amountToBorrowFromEachSubmitter) {
+				namesToCheckout.addAll(availableNamesFromSubmitter);
+				continue;
+			}
+			namesToCheckout.addAll(namesBySubmitter.get(submitter).stream().limit(amountToBorrowFromEachSubmitter + Math.min(amountLeftover, 1)).collect(Collectors.toList()));
+			amountLeftover = Math.max(amountLeftover - 1, 0);
+		}
+		return namesToCheckout;
+	}
 	
 	@Override
 	public void returnNames(Collection<CompletedTempleOrdinances> names) {
