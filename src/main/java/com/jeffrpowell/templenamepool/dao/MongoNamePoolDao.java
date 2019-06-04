@@ -97,14 +97,18 @@ public class MongoNamePoolDao implements NamePoolDao{
 	private List<NameSubmission> selectNamesToCheckout(Collection<NameSubmission> availableNames, int namesRequested) {
 		Map<WardMember, List<NameSubmission>> namesBySubmitter = availableNames.stream()
 			.collect(Collectors.groupingBy(NameSubmission::getSupplier));
-		List<WardMember> submittersInPriorityOrder = namesBySubmitter.keySet().stream().sorted(Comparator.comparing(submitter -> namesBySubmitter.get(submitter).size())).collect(Collectors.toList());
+		List<WardMember> submittersInPriorityOrder = namesBySubmitter.entrySet().stream()
+			.sorted(Comparator.comparing((Map.Entry<WardMember, List<NameSubmission>> entry) -> entry.getValue().size()).reversed())
+			.map(Map.Entry::getKey)
+			.collect(Collectors.toList());
 		int amountToBorrowFromEachSubmitter = namesRequested / submittersInPriorityOrder.size();
-		int amountLeftover = namesRequested % Math.max(amountToBorrowFromEachSubmitter, 1);
+		int amountLeftover = Math.max(namesRequested % Math.max(amountToBorrowFromEachSubmitter, 1), 1);
 		List<NameSubmission> namesToCheckout = new ArrayList<>();
 		for (WardMember submitter : submittersInPriorityOrder)
 		{
 			List<NameSubmission> availableNamesFromSubmitter = namesBySubmitter.get(submitter);
 			if (availableNamesFromSubmitter.size() <= amountToBorrowFromEachSubmitter) {
+				//BUG: If the total amount to borrow is greater than the amount available from a submitter, we aren't reallocating unused 'amountLeftover' to previous submitters
 				namesToCheckout.addAll(availableNamesFromSubmitter);
 				continue;
 			}
